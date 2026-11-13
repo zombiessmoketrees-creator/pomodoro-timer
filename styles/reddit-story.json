@@ -1,0 +1,75 @@
+{
+  "name": "reddit-story",
+  "label": "Reddit Story",
+  "description": "Story-time Shorts look: a dark forum-post card opens the video, then the story plays as bold word-by-word text with slide transitions.",
+  "colors": {
+    "background": "#101214",
+    "backgroundAlt": "#1a1d21",
+    "surface": "#1f2327",
+    "text": "#f5f6f7",
+    "muted": "#9aa4ad",
+    "accent": "#ff5a1f",
+    "accentAlt": "#2f80ed"
+  },
+  "background": {
+    "type": "gradient",
+    "angle": 180,
+    "vignette": 0.3,
+    "grain": 0.0
+  },
+  "fonts": {
+    "heading": {
+      "family": "Inter",
+      "weight": 800
+    },
+    "body": {
+      "family": "Inter",
+      "weight": 500
+    },
+    "mono": {
+      "family": "JetBrains Mono",
+      "weight": 500
+    }
+  },
+  "typography": {
+    "headingSize": 96,
+    "bodySize": 58,
+    "lineHeight": 1.32,
+    "letterSpacing": -0.01,
+    "uppercaseHeadings": false,
+    "align": "center"
+  },
+  "motion": {
+    "enter": "slide-up",
+    "staggerFrames": 3,
+    "spring": {
+      "damping": 15,
+      "mass": 0.7,
+      "stiffness": 160
+    },
+    "transition": "slide",
+    "transitionFrames": 10
+  },
+  "layout": {
+    "padding": 100,
+    "maxWidth": 1200,
+    "cornerRadius": 28,
+    "progressBar": true,
+    "accentBar": false
+  },
+  "captions": {
+    "fontFamily": "Inter",
+    "fontSize": 88,
+    "color": "#ffffff",
+    "highlight": "#ff5a1f",
+    "outline": "#000000",
+    "position": "middle",
+    "wordsPerGroup": 3,
+    "uppercase": false
+  },
+  "pacing": {
+    "wordsPerSecond": 2.9,
+    "minSceneSeconds": 2.0,
+    "maxSceneSeconds": 8.0
+  }
+}

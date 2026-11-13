@@ -1,0 +1,49 @@
+# ---- Secrets / machine-specific ------------------------------------------
+.env
+.env.local
+
+# ---- Heavy media: never synced through Git --------------------------------
+/media/
+/output/
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+*.m4a
+*.wav
+*.mp3
+*.aac
+# ...except music / voiceover you deliberately add for manifests (audio.music: "audio/track.mp3"):
+!/studio/public/audio/**
+
+# ---- Generated at build/render time ---------------------------------------
+/studio/manifests/.resolved/
+/studio/public/assets/*
+!/studio/public/assets/.gitkeep
+/studio/out/
+/studio/build/
+/engine/models/*
+!/engine/models/.gitkeep
+
+# ---- Dependencies & caches -------------------------------------------------
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.remotion/
+*.tsbuildinfo
+npm-debug.log*
+
+# ---- OS / editor noise -----------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# ---- Claude Code local state (shared config in .claude/ IS tracked) --------
+.claude/settings.local.json

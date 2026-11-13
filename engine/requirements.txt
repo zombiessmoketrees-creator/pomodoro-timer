@@ -1,0 +1,8 @@
+# Local-first media engine. Install into the repo's .venv via setup.sh / setup.ps1.
+yt-dlp>=2025.1.15
+faster-whisper>=1.1.0
+opencv-python-headless>=4.10
+mediapipe>=0.10.14
+numpy>=1.26
+PyYAML>=6.0
+python-dotenv>=1.0

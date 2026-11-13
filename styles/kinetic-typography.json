@@ -1,0 +1,75 @@
+{
+  "name": "kinetic-typography",
+  "label": "Kinetic Typography",
+  "description": "High-energy short-form look: huge condensed uppercase words punching in one phrase at a time on a saturated background, hard cuts.",
+  "colors": {
+    "background": "#0f0f12",
+    "backgroundAlt": "#1b0f2e",
+    "surface": "#22222a",
+    "text": "#ffffff",
+    "muted": "#b9b9c6",
+    "accent": "#ffe600",
+    "accentAlt": "#ff3d81"
+  },
+  "background": {
+    "type": "particles",
+    "angle": 135,
+    "vignette": 0.35,
+    "grain": 0.06
+  },
+  "fonts": {
+    "heading": {
+      "family": "Anton",
+      "weight": 400
+    },
+    "body": {
+      "family": "Inter",
+      "weight": 700
+    },
+    "mono": {
+      "family": "JetBrains Mono",
+      "weight": 500
+    }
+  },
+  "typography": {
+    "headingSize": 150,
+    "bodySize": 64,
+    "lineHeight": 1.2,
+    "letterSpacing": 0.01,
+    "uppercaseHeadings": true,
+    "align": "center"
+  },
+  "motion": {
+    "enter": "kinetic",
+    "staggerFrames": 2,
+    "spring": {
+      "damping": 11,
+      "mass": 0.6,
+      "stiffness": 180
+    },
+    "transition": "cut",
+    "transitionFrames": 0
+  },
+  "layout": {
+    "padding": 90,
+    "maxWidth": 1600,
+    "cornerRadius": 18,
+    "progressBar": true,
+    "accentBar": false
+  },
+  "captions": {
+    "fontFamily": "Anton",
+    "fontSize": 96,
+    "color": "#ffffff",
+    "highlight": "#ffe600",
+    "outline": "#000000",
+    "position": "middle",
+    "wordsPerGroup": 3,
+    "uppercase": true
+  },
+  "pacing": {
+    "wordsPerSecond": 3.1,
+    "minSceneSeconds": 1.6,
+    "maxSceneSeconds": 7.0
+  }
+}

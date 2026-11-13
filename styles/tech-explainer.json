@@ -1,0 +1,75 @@
+{
+  "name": "tech-explainer",
+  "label": "Tech Explainer",
+  "description": "Clean developer-channel look: deep navy with a drifting grid, geometric sans headings, typewriter text, code windows and wipe transitions.",
+  "colors": {
+    "background": "#07111f",
+    "backgroundAlt": "#0b1b33",
+    "surface": "#0f2038",
+    "text": "#e8f1ff",
+    "muted": "#8ba3c2",
+    "accent": "#3ddc97",
+    "accentAlt": "#5cc8ff"
+  },
+  "background": {
+    "type": "grid",
+    "angle": 150,
+    "vignette": 0.4,
+    "grain": 0.0
+  },
+  "fonts": {
+    "heading": {
+      "family": "Space Grotesk",
+      "weight": 700
+    },
+    "body": {
+      "family": "IBM Plex Sans",
+      "weight": 400
+    },
+    "mono": {
+      "family": "JetBrains Mono",
+      "weight": 500
+    }
+  },
+  "typography": {
+    "headingSize": 104,
+    "bodySize": 52,
+    "lineHeight": 1.4,
+    "letterSpacing": -0.01,
+    "uppercaseHeadings": false,
+    "align": "left"
+  },
+  "motion": {
+    "enter": "typewriter",
+    "staggerFrames": 2,
+    "spring": {
+      "damping": 18,
+      "mass": 0.8,
+      "stiffness": 140
+    },
+    "transition": "wipe",
+    "transitionFrames": 12
+  },
+  "layout": {
+    "padding": 130,
+    "maxWidth": 1500,
+    "cornerRadius": 16,
+    "progressBar": true,
+    "accentBar": true
+  },
+  "captions": {
+    "fontFamily": "Space Grotesk",
+    "fontSize": 72,
+    "color": "#ffffff",
+    "highlight": "#3ddc97",
+    "outline": "#04101f",
+    "position": "bottom",
+    "wordsPerGroup": 4,
+    "uppercase": false
+  },
+  "pacing": {
+    "wordsPerSecond": 2.6,
+    "minSceneSeconds": 2.5,
+    "maxSceneSeconds": 10.0
+  }
+}

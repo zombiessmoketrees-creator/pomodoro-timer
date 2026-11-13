@@ -1,0 +1,442 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "styles/_schema.json",
+  "title": "Video style preset",
+  "description": "A reusable visual theme consumed by studio/ (Remotion) and engine/clipper.py (caption styling). File name must be <name>.json. Sizes are authored for a 1080px short edge and rescale automatically.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "label",
+    "description",
+    "colors",
+    "background",
+    "fonts",
+    "typography",
+    "motion",
+    "layout",
+    "captions",
+    "pacing"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "kebab-case id; must equal the file name without .json"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "description": "One sentence: the look, the mood, and what content it suits."
+    },
+    "colors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "background",
+        "backgroundAlt",
+        "surface",
+        "text",
+        "muted",
+        "accent",
+        "accentAlt"
+      ],
+      "properties": {
+        "background": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "backgroundAlt": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "surface": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "text": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "muted": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "accent": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "accentAlt": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        }
+      },
+      "description": "text must contrast with background at >= 7:1; surface is the card/code-window fill and should contrast with text or muted."
+    },
+    "background": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "angle",
+        "vignette",
+        "grain"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "solid",
+            "gradient",
+            "grid",
+            "particles"
+          ]
+        },
+        "angle": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360,
+          "description": "Gradient angle in degrees"
+        },
+        "vignette": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Edge darkening strength"
+        },
+        "grain": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.4,
+          "description": "Film grain opacity"
+        }
+      }
+    },
+    "fonts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "body",
+        "mono"
+      ],
+      "properties": {
+        "heading": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "family",
+            "weight"
+          ],
+          "properties": {
+            "family": {
+              "enum": [
+                "Inter",
+                "Space Grotesk",
+                "IBM Plex Sans",
+                "Playfair Display",
+                "Anton",
+                "JetBrains Mono"
+              ]
+            },
+            "weight": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 900,
+              "multipleOf": 100
+            }
+          }
+        },
+        "body": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "family",
+            "weight"
+          ],
+          "properties": {
+            "family": {
+              "enum": [
+                "Inter",
+                "Space Grotesk",
+                "IBM Plex Sans",
+                "Playfair Display",
+                "Anton",
+                "JetBrains Mono"
+              ]
+            },
+            "weight": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 900,
+              "multipleOf": 100
+            }
+          }
+        },
+        "mono": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "family",
+            "weight"
+          ],
+          "properties": {
+            "family": {
+              "enum": [
+                "Inter",
+                "Space Grotesk",
+                "IBM Plex Sans",
+                "Playfair Display",
+                "Anton",
+                "JetBrains Mono"
+              ]
+            },
+            "weight": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 900,
+              "multipleOf": 100
+            }
+          }
+        }
+      },
+      "description": "Families must be bundled in studio/src/lib/fonts.ts."
+    },
+    "typography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "headingSize",
+        "bodySize",
+        "lineHeight",
+        "letterSpacing",
+        "uppercaseHeadings",
+        "align"
+      ],
+      "properties": {
+        "headingSize": {
+          "type": "number",
+          "minimum": 60,
+          "maximum": 220
+        },
+        "bodySize": {
+          "type": "number",
+          "minimum": 36,
+          "maximum": 96
+        },
+        "lineHeight": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 2
+        },
+        "letterSpacing": {
+          "type": "number",
+          "minimum": -0.05,
+          "maximum": 0.3,
+          "description": "em"
+        },
+        "uppercaseHeadings": {
+          "type": "boolean"
+        },
+        "align": {
+          "enum": [
+            "left",
+            "center"
+          ]
+        }
+      }
+    },
+    "motion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enter",
+        "staggerFrames",
+        "spring",
+        "transition",
+        "transitionFrames"
+      ],
+      "properties": {
+        "enter": {
+          "enum": [
+            "fade",
+            "slide-up",
+            "blur",
+            "typewriter",
+            "kinetic"
+          ],
+          "description": "How body text arrives. kinetic = one large phrase at a time."
+        },
+        "staggerFrames": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 12,
+          "description": "Frames between words"
+        },
+        "spring": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "damping",
+            "mass",
+            "stiffness"
+          ],
+          "properties": {
+            "damping": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 300
+            },
+            "mass": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 5
+            },
+            "stiffness": {
+              "type": "number",
+              "minimum": 10,
+              "maximum": 400
+            }
+          },
+          "description": "Low damping = bouncy, 200 = no overshoot."
+        },
+        "transition": {
+          "enum": [
+            "cut",
+            "fade",
+            "slide",
+            "wipe"
+          ]
+        },
+        "transitionFrames": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 45
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "padding",
+        "maxWidth",
+        "cornerRadius",
+        "progressBar",
+        "accentBar"
+      ],
+      "properties": {
+        "padding": {
+          "type": "number",
+          "minimum": 40,
+          "maximum": 240
+        },
+        "maxWidth": {
+          "type": "number",
+          "minimum": 600,
+          "maximum": 1800
+        },
+        "cornerRadius": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60
+        },
+        "progressBar": {
+          "type": "boolean"
+        },
+        "accentBar": {
+          "type": "boolean"
+        }
+      }
+    },
+    "captions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fontFamily",
+        "fontSize",
+        "color",
+        "highlight",
+        "outline",
+        "position",
+        "wordsPerGroup",
+        "uppercase"
+      ],
+      "properties": {
+        "fontFamily": {
+          "enum": [
+            "Inter",
+            "Space Grotesk",
+            "IBM Plex Sans",
+            "Playfair Display",
+            "Anton",
+            "JetBrains Mono"
+          ]
+        },
+        "fontSize": {
+          "type": "number",
+          "minimum": 40,
+          "maximum": 140
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "highlight": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "outline": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "position": {
+          "enum": [
+            "bottom",
+            "middle",
+            "top"
+          ]
+        },
+        "wordsPerGroup": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "uppercase": {
+          "type": "boolean"
+        }
+      },
+      "description": "Word-synced caption look, used by Remotion caption overlays and by burned-in clip captions."
+    },
+    "pacing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wordsPerSecond",
+        "minSceneSeconds",
+        "maxSceneSeconds"
+      ],
+      "properties": {
+        "wordsPerSecond": {
+          "type": "number",
+          "minimum": 1.5,
+          "maximum": 4.5,
+          "description": "Reading speed used to time scenes"
+        },
+        "minSceneSeconds": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "maxSceneSeconds": {
+          "type": "number",
+          "minimum": 3,
+          "maximum": 30
+        }
+      }
+    }
+  }
+}

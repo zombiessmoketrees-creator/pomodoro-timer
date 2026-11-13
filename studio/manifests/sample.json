@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "id": "sample",
+  "title": "Why Your Brain Loves Deadlines",
+  "format": "both",
+  "fps": 30,
+  "style": "documentary-dark",
+  "targetDuration": 32,
+  "branding": {
+    "handle": "@yourchannel"
+  },
+  "scenes": [
+    {
+      "id": "s01",
+      "type": "title",
+      "durationInSeconds": 4,
+      "kicker": "Productivity",
+      "title": "Why Your Brain Loves **Deadlines**",
+      "subtitle": "The science of working under pressure"
+    },
+    {
+      "id": "s02",
+      "type": "text",
+      "durationInSeconds": 5,
+      "heading": "The problem",
+      "text": "Give yourself a week for a two-hour task and it will take **the whole week**. Work expands to fill the time you allow."
+    },
+    {
+      "id": "s03",
+      "type": "stat",
+      "durationInSeconds": 3.5,
+      "value": "25 min",
+      "label": "The focus sprint length most people can sustain"
+    },
+    {
+      "id": "s04",
+      "type": "bullets",
+      "durationInSeconds": 6,
+      "heading": "What a deadline does",
+      "items": [
+        "Narrows your **attention** to one task",
+        "Makes starting cheaper than waiting",
+        "Turns vague effort into a finish line"
+      ]
+    },
+    {
+      "id": "s05",
+      "type": "quote",
+      "durationInSeconds": 4.5,
+      "text": "If it weren't for the last minute, nothing would get done.",
+      "attribution": "Rita Mae Brown"
+    },
+    {
+      "id": "s06",
+      "type": "code",
+      "durationInSeconds": 5,
+      "heading": "Try it",
+      "language": "python",
+      "code": "def sprint(task, minutes=25):\n    timer = start(minutes)\n    while timer.running:\n        focus(task)  # one thing only\n    return rest(5)"
+    },
+    {
+      "id": "s07",
+      "type": "outro",
+      "durationInSeconds": 4,
+      "title": "Set a timer. Start now.",
+      "cta": "Subscribe for more"
+    }
+  ]
+}

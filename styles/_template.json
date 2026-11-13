@@ -1,0 +1,75 @@
+{
+  "name": "my-new-style",
+  "label": "My New Style",
+  "description": "Replace with one sentence describing the look, the mood, and the content it suits.",
+  "colors": {
+    "background": "#0b0d10",
+    "backgroundAlt": "#161b22",
+    "surface": "#1c222b",
+    "text": "#f2efe9",
+    "muted": "#9aa3ad",
+    "accent": "#e0b064",
+    "accentAlt": "#7fb7c9"
+  },
+  "background": {
+    "type": "gradient",
+    "angle": 160,
+    "vignette": 0.55,
+    "grain": 0.12
+  },
+  "fonts": {
+    "heading": {
+      "family": "Playfair Display",
+      "weight": 700
+    },
+    "body": {
+      "family": "Inter",
+      "weight": 400
+    },
+    "mono": {
+      "family": "JetBrains Mono",
+      "weight": 500
+    }
+  },
+  "typography": {
+    "headingSize": 112,
+    "bodySize": 54,
+    "lineHeight": 1.42,
+    "letterSpacing": 0,
+    "uppercaseHeadings": false,
+    "align": "left"
+  },
+  "motion": {
+    "enter": "blur",
+    "staggerFrames": 3,
+    "spring": {
+      "damping": 200,
+      "mass": 1,
+      "stiffness": 90
+    },
+    "transition": "fade",
+    "transitionFrames": 18
+  },
+  "layout": {
+    "padding": 140,
+    "maxWidth": 1500,
+    "cornerRadius": 10,
+    "progressBar": false,
+    "accentBar": true
+  },
+  "captions": {
+    "fontFamily": "Inter",
+    "fontSize": 68,
+    "color": "#ffffff",
+    "highlight": "#e0b064",
+    "outline": "#000000",
+    "position": "bottom",
+    "wordsPerGroup": 4,
+    "uppercase": false
+  },
+  "pacing": {
+    "wordsPerSecond": 2.4,
+    "minSceneSeconds": 3.0,
+    "maxSceneSeconds": 12.0
+  }
+}
