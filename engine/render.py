@@ -91,6 +91,10 @@ def load_resolved(manifest_arg: str, style_override: str | None = None) -> tuple
     manifest.setdefault("fps", 30)
     manifest.setdefault("format", "both")
     resolved = {**manifest, "theme": theme}
+    # Remotion merges --props over the composition's default props (the sample manifest),
+    # so every optional key must be present or the sample's value would leak into this video.
+    for optional in ("branding", "audio", "captions", "source", "targetDuration", "narrate"):
+        resolved.setdefault(optional, None)
     props = MANIFEST_DIR / ".resolved" / f"{manifest['id']}.json"
     write_json(props, resolved)
     return resolved, theme, path, props
@@ -172,6 +176,13 @@ def render_frames(args, comp: str, props: Path, out: Path, hardware: hw.Hardware
 # Commands
 # --------------------------------------------------------------------------- #
 def cmd_render(args: argparse.Namespace) -> None:
+    # Narrated videos: voice any scene that has no audio yet (this also re-times the scenes).
+    import narrate
+
+    narrated_path = resolve_manifest_path(args.manifest)
+    if narrate.needs_narration(read_json(narrated_path)):
+        info = narrate.narrate_manifest(narrated_path)
+        log(f"Narration ready: {info['scenesNarrated']} scenes, {info['durationSeconds']}s, voice {info['voice']}")
     manifest, theme, manifest_path, props = load_resolved(args.manifest, args.style)
     hardware = hw.detect(args.encoder or "")
     out_root = Path(args.out).expanduser() if args.out else output_dir() / "videos" / manifest["id"]

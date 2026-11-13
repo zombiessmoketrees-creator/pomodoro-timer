@@ -23,7 +23,10 @@ SCENE_FIELDS: dict[str, dict[str, tuple[type, bool]]] = {
     "reddit": {"subreddit": (str, True), "author": (str, True), "title": (str, True),
                "body": (str, False), "upvotes": (str, False), "comments": (str, False)},
     "outro": {"title": (str, True), "cta": (str, False)},
+    "pixel": {"art": (str, True), "text": (str, True)},
 }
+# Picture ids implemented in studio/src/scenes/pixel/art.ts
+PIXEL_ART = ("night-road", "chase", "tnt-area", "mothman", "newspaper", "town", "bridge", "collapse", "crane", "statue")
 FORMATS = ("landscape", "vertical", "both")
 COMPOSITIONS = {"landscape": ("Landscape", 1920, 1080), "vertical": ("Vertical", 1080, 1920)}
 
@@ -161,6 +164,8 @@ def validate_manifest(manifest: Any) -> list[str]:
                     errors.append(f"{where}.{name}: expected {kind.__name__}")
                 elif kind is list and (not value or not all(isinstance(v, str) for v in value)):
                     errors.append(f"{where}.{name}: expected a non-empty list of strings")
+            if scene.get("type") == "pixel" and isinstance(scene.get("art"), str) and scene["art"] not in PIXEL_ART:
+                errors.append(f"{where}.art: '{scene['art']}' is not one of {list(PIXEL_ART)}")
     captions = manifest.get("captions")
     if captions is not None:
         ok = isinstance(captions, list) and all(

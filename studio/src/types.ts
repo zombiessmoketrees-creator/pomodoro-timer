@@ -6,7 +6,7 @@ export type FontSpec = {
   weight: number;
 };
 
-export type BackgroundType = "solid" | "gradient" | "grid" | "particles";
+export type BackgroundType = "solid" | "gradient" | "grid" | "particles" | "scanlines";
 export type EnterAnimation = "fade" | "slide-up" | "blur" | "typewriter" | "kinetic";
 export type TransitionType = "cut" | "fade" | "slide" | "wipe";
 
@@ -129,6 +129,13 @@ export type RedditSceneData = SceneBase & {
   upvotes?: string;
   comments?: string;
 };
+export type PixelSceneData = SceneBase & {
+  type: "pixel";
+  /** Picture id from studio/src/scenes/pixel/art.ts */
+  art: string;
+  /** Shown in the dialog box (and read aloud when the video is narrated). */
+  text: string;
+};
 export type OutroSceneData = SceneBase & {
   type: "outro";
   title: string;
@@ -144,6 +151,7 @@ export type Scene =
   | CodeSceneData
   | ImageSceneData
   | RedditSceneData
+  | PixelSceneData
   | OutroSceneData;
 
 export type CaptionWord = { text: string; start: number; end: number };
@@ -153,6 +161,8 @@ export type Manifest = {
   id: string;
   title: string;
   format: "landscape" | "vertical" | "both";
+  /** True when engine/narrate.py should voice the scenes' narration before rendering. */
+  narrate?: boolean;
   fps: number;
   style: string;
   /** Resolved theme. engine/render.py inlines styles/<style>.json here. */

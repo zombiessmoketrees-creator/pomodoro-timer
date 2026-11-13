@@ -13,7 +13,8 @@ note when its frontmatter has `video: true`, a `video_status`, or the tag
 
     title, subtitle, kicker, style, target_duration (60, "60s", "1:30"),
     format (landscape|vertical|both), fps, handle, cta, outro,
-    voiceover, music, subreddit, author, upvotes, comments
+    voiceover, music (a file, or "chiptune" to generate one), narrate (true = local
+    text-to-speech reads every scene), subreddit, author, upvotes, comments
 
 Body -> scenes:
     # Heading 1            section title card
@@ -24,6 +25,7 @@ Body -> scenes:
     > [!stat] 73%          stat scene (following lines are the label)
     > [!reddit] r/sub      forum-post card (following lines: title, then body)
     > [!cta] Subscribe     outro scene
+    > [!pixel] mothman     16-bit pixel-art scene (following lines are the dialog-box text)
     ```lang ... ```        code scene
     ![[image.png]]         image scene (copied into studio/public/assets)
     **bold** / ==mark==    accent-coloured emphasis
@@ -310,6 +312,8 @@ def parse_quote(lines: list[str]) -> dict[str, Any]:
                     "author": next((p for p in parts if p.startswith("u/")), ""),
                     "upvotes": next((p for p in parts if re.match(r"^[\d.,]+[kKmM]?$", p)), ""),
                     "title": rest[0] if rest else "", "body": " ".join(rest[1:])}
+        if kind == "pixel":
+            return {"kind": "pixel", "art": plain(head).strip().lower(), "text": plain(" ".join(rest))}
         if kind in ("cta", "outro"):
             return {"kind": "outro", "title": " ".join(rest) or head, "cta": head if rest else ""}
         if kind == "quote":
@@ -483,13 +487,16 @@ def build_scenes(meta: dict, blocks: list[dict], theme: dict, title: str, assets
             if src:
                 add({"type": "image", "src": src, "caption": plain(block["caption"])},
                     max(3.5, read_time(block["caption"], 2.5)), block["caption"])
+        elif kind == "pixel" and block["text"]:
+            add({"type": "pixel", "art": block["art"], "text": block["text"]}, read_time(block["text"], 1.2), block["text"])
         elif kind == "outro":
             add({"type": "outro", "title": plain(block["title"]), "cta": plain(block["cta"])},
                 max(3.0, read_time(block["title"], 2.0)), block["title"])
 
     if meta.get("cta") and not any(s["type"] == "outro" for s in scenes):
         outro_title = str(meta.get("outro") or "Thanks for watching")
-        add({"type": "outro", "title": outro_title, "cta": str(meta["cta"])}, max(3.0, read_time(outro_title, 2.0)))
+        add({"type": "outro", "title": outro_title, "cta": str(meta["cta"])}, max(3.0, read_time(outro_title, 2.0)),
+            outro_title)
 
     for index, scene in enumerate(scenes, start=1):
         scene["id"] = f"s{index:02d}"
@@ -559,6 +566,8 @@ def build_manifest(note: Path, vault: Path, style: str | None = None, fmt: str |
     audio = {k: str(meta[k]) for k in ("voiceover", "music") if meta.get(k)}
     if audio:
         manifest["audio"] = audio
+    if meta.get("narrate") is True:
+        manifest["narrate"] = True  # engine/narrate.py voices each scene and re-times it to the audio
     manifest["scenes"] = scenes
     manifest["source"] = {"vault": str(vault), "note": note.relative_to(vault).as_posix(), "notePath": str(note)}
 

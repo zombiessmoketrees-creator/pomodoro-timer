@@ -69,8 +69,30 @@ under `## Render Log`). Report to the user: output paths, duration, file size, e
 note was updated. If logging failed (note missing on this machine), say so and give the manual command:
 `PY engine/obsidian_bridge.py log "<note>" --render output/videos/<id>/render.json`.
 
+## Narrated videos
+`narrate: true` in the frontmatter makes a local Piper voice read every scene (no cloud TTS).
+- After step 3, run `PY engine/narrate.py <id>` **before** the stills: it records one WAV per scene and
+  re-times each scene to its spoken line, so the build's `durationSeconds` no longer applies — report the
+  duration `narrate.py` prints. (`render` runs it automatically if you skip it.)
+- Write for the ear: 12–24 words per scene, short sentences, no symbols or abbreviations.
+- Changed a line? Re-run with `--force`. Other voice: `--voice en_GB-alan-medium` (`narrate.py voices` lists some).
+- Proper nouns can be mispronounced. Tell the user which names to listen for in the first render.
+- `music: chiptune` adds a code-synthesised 16-bit score.
+
+## 16-bit pixel-art story videos
+Use `style: retro-16bit` and write each beat as a pixel block — full-screen code-drawn art with the
+narration in an RPG dialog box:
+```
+> [!pixel] night-road
+> Two couples. One dark road. And something with glowing red eyes.
+```
+Art ids are defined in `studio/src/scenes/pixel/art.ts` and listed in `PIXEL_ART` in `engine/manifest.py`
+(currently: night-road, chase, tnt-area, mothman, newspaper, town, bridge, collapse, crane, statue).
+A story that needs a picture that does not exist yet → `remotion-builder` adds one (both files, one change),
+then checks it with a still in both formats.
+
 ## Notes
-- Voiceover or music: put the file in `studio/public/audio/` and set `voiceover:` / `music:` in frontmatter
-  (e.g. `music: audio/track.mp3`). Record narration yourself — no cloud TTS.
+- Your own voiceover or music: put the file in `studio/public/audio/` and set `voiceover:` / `music:` in
+  frontmatter (e.g. `music: audio/track.mp3`).
 - A draft render is 4x faster: add `--scale 0.5`.
 - `PY engine/obsidian_bridge.py new "Title"` creates a starter note with the right frontmatter.

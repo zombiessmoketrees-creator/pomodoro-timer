@@ -92,7 +92,8 @@
             "solid",
             "gradient",
             "grid",
-            "particles"
+            "particles",
+            "scanlines"
           ]
         },
         "angle": {
@@ -139,7 +140,9 @@
                 "IBM Plex Sans",
                 "Playfair Display",
                 "Anton",
-                "JetBrains Mono"
+                "JetBrains Mono",
+                "Press Start 2P",
+                "VT323"
               ]
             },
             "weight": {
@@ -165,7 +168,9 @@
                 "IBM Plex Sans",
                 "Playfair Display",
                 "Anton",
-                "JetBrains Mono"
+                "JetBrains Mono",
+                "Press Start 2P",
+                "VT323"
               ]
             },
             "weight": {
@@ -191,7 +196,9 @@
                 "IBM Plex Sans",
                 "Playfair Display",
                 "Anton",
-                "JetBrains Mono"
+                "JetBrains Mono",
+                "Press Start 2P",
+                "VT323"
               ]
             },
             "weight": {
@@ -219,7 +226,7 @@
       "properties": {
         "headingSize": {
           "type": "number",
-          "minimum": 60,
+          "minimum": 40,
           "maximum": 220
         },
         "bodySize": {
@@ -373,7 +380,9 @@
             "IBM Plex Sans",
             "Playfair Display",
             "Anton",
-            "JetBrains Mono"
+            "JetBrains Mono",
+            "Press Start 2P",
+            "VT323"
           ]
         },
         "fontSize": {

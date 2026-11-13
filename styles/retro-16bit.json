@@ -1,0 +1,75 @@
+{
+  "name": "retro-16bit",
+  "label": "Retro 16-Bit",
+  "description": "Console-era pixel look: chunky pixel fonts, a starfield with CRT scanlines, hard cuts and typewriter text. Made for narrated story videos built from `pixel` scenes (code-drawn pixel art with an RPG dialog box).",
+  "colors": {
+    "background": "#070718",
+    "backgroundAlt": "#171445",
+    "surface": "#0c0c2a",
+    "text": "#f4f4ff",
+    "muted": "#9aa0d8",
+    "accent": "#ffd166",
+    "accentAlt": "#ff3b30"
+  },
+  "background": {
+    "type": "scanlines",
+    "angle": 180,
+    "vignette": 0.45,
+    "grain": 0.0
+  },
+  "fonts": {
+    "heading": {
+      "family": "Press Start 2P",
+      "weight": 400
+    },
+    "body": {
+      "family": "VT323",
+      "weight": 400
+    },
+    "mono": {
+      "family": "VT323",
+      "weight": 400
+    }
+  },
+  "typography": {
+    "headingSize": 62,
+    "bodySize": 64,
+    "lineHeight": 1.25,
+    "letterSpacing": 0,
+    "uppercaseHeadings": true,
+    "align": "center"
+  },
+  "motion": {
+    "enter": "typewriter",
+    "staggerFrames": 2,
+    "spring": {
+      "damping": 200,
+      "mass": 1,
+      "stiffness": 120
+    },
+    "transition": "cut",
+    "transitionFrames": 0
+  },
+  "layout": {
+    "padding": 90,
+    "maxWidth": 1500,
+    "cornerRadius": 0,
+    "progressBar": true,
+    "accentBar": false
+  },
+  "captions": {
+    "fontFamily": "VT323",
+    "fontSize": 96,
+    "color": "#ffffff",
+    "highlight": "#ffd166",
+    "outline": "#000000",
+    "position": "bottom",
+    "wordsPerGroup": 3,
+    "uppercase": true
+  },
+  "pacing": {
+    "wordsPerSecond": 2.6,
+    "minSceneSeconds": 3.0,
+    "maxSceneSeconds": 12.0
+  }
+}

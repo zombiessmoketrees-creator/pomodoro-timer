@@ -4,6 +4,7 @@ import { BulletsScene } from "./BulletsScene";
 import { CodeScene } from "./CodeScene";
 import { ImageScene } from "./ImageScene";
 import { OutroScene } from "./OutroScene";
+import { PixelScene } from "./PixelScene";
 import { QuoteScene } from "./QuoteScene";
 import { RedditScene } from "./RedditScene";
 import { StatScene } from "./StatScene";
@@ -33,6 +34,8 @@ export const SceneRenderer: React.FC<{ scene: Scene; theme: Theme }> = ({ scene,
       return <ImageScene scene={scene} theme={theme} />;
     case "reddit":
       return <RedditScene scene={scene} theme={theme} />;
+    case "pixel":
+      return <PixelScene scene={scene} theme={theme} />;
     case "outro":
       return <OutroScene scene={scene} theme={theme} />;
     default: {

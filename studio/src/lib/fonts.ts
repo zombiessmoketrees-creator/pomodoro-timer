@@ -26,6 +26,8 @@ import "@fontsource/anton/400.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "@fontsource/jetbrains-mono/700.css";
+import "@fontsource/press-start-2p/400.css";
+import "@fontsource/vt323/400.css";
 
 export const FONT_FAMILIES = [
   "Inter",
@@ -34,11 +36,15 @@ export const FONT_FAMILIES = [
   "Playfair Display",
   "Anton",
   "JetBrains Mono",
+  "Press Start 2P",
+  "VT323",
 ] as const;
 
 const FALLBACK: Record<string, string> = {
   "Playfair Display": "Georgia, 'Times New Roman', serif",
   "JetBrains Mono": "Menlo, Consolas, monospace",
+  "Press Start 2P": "'Courier New', monospace",
+  VT323: "'Courier New', monospace",
 };
 
 export const fontStack = (family: string): string =>

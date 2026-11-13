@@ -60,6 +60,49 @@ const Grid: React.FC<{ color: string }> = ({ color }) => {
   );
 };
 
+/** CRT scanlines. Exported so pixel scenes can lay the same texture over their art. */
+export const Scanlines: React.FC<{ opacity?: number }> = ({ opacity = 0.22 }) => {
+  const { height } = useVideoConfig();
+  const line = Math.max(2, Math.round(height / 270));
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundImage: `linear-gradient(rgba(0,0,0,${opacity}) 50%, transparent 50%)`,
+        backgroundSize: `100% ${line * 2}px`,
+        pointerEvents: "none",
+      }}
+    />
+  );
+};
+
+const PixelStars: React.FC<{ color: string }> = ({ color }) => {
+  const frame = useCurrentFrame();
+  const { width, height, fps } = useVideoConfig();
+  const px = Math.round(Math.min(width, height) / 108);
+  const tick = Math.floor(frame / (fps / 12));
+  return (
+    <AbsoluteFill>
+      {Array.from({ length: 70 }, (_, i) => {
+        const dim = (tick + Math.floor(random(`ps-t-${i}`) * 24)) % 24 < 3;
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: Math.floor((random(`ps-x-${i}`) * width) / px) * px,
+              top: Math.floor((random(`ps-y-${i}`) * height) / px) * px,
+              width: px,
+              height: px,
+              background: i % 9 === 0 ? color : "#ffffff",
+              opacity: dim ? 0.25 : 0.85,
+            }}
+          />
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
+
 export const Background: React.FC<{ theme: Theme }> = ({ theme }) => {
   const frame = useCurrentFrame();
   const { colors, background } = theme;
@@ -80,6 +123,8 @@ export const Background: React.FC<{ theme: Theme }> = ({ theme }) => {
         />
       ) : null}
       {background.type === "grid" ? <Grid color={colors.accent} /> : null}
+      {background.type === "scanlines" ? <PixelStars color={colors.accent} /> : null}
+      {background.type === "scanlines" ? <Scanlines /> : null}
       {background.type === "particles" ? <Particles color={colors.accent} seed={theme.name} /> : null}
       {background.vignette > 0 ? (
         <AbsoluteFill
