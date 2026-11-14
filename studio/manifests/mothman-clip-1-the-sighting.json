@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "id": "mothman-clip-1-the-sighting",
+  "title": "The Mothman of Point Pleasant — Part 1 of 3",
+  "format": "vertical",
+  "fps": 30,
+  "style": "retro-16bit",
+  "narrate": true,
+  "audio": {
+    "music": "assets/mothman-clip-1-the-sighting/chiptune.wav",
+    "musicVolume": 0.14
+  },
+  "scenes": [
+    {
+      "id": "c00",
+      "type": "title",
+      "durationInSeconds": 4.0,
+      "kicker": "Mothman · Part 1 of 3",
+      "title": "Something followed their car",
+      "narration": "Something followed their car",
+      "audio": "assets/mothman-clip-1-the-sighting/narration/c00.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "night-road",
+      "text": "Two couples. One dark road. And something with glowing red eyes that, they said, would not let go.",
+      "narration": "Two couples. One dark road. And something with glowing red eyes that, they said, would not let go.",
+      "id": "s02",
+      "durationInSeconds": 8.01,
+      "audio": "assets/mothman-clip-1-the-sighting/narration/s02.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "tnt-area",
+      "text": "Late on November 15, 1966, Roger and Linda Scarberry and Steve and Mary Mallette drove past an abandoned explosives plant.",
+      "narration": "Late on November 15, 1966, Roger and Linda Scarberry and Steve and Mary Mallette drove past an abandoned explosives plant.",
+      "id": "s03",
+      "durationInSeconds": 11.54,
+      "audio": "assets/mothman-clip-1-the-sighting/narration/s03.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "mothman",
+      "text": "They said they saw a grey creature shaped like a man, seven feet tall, with wings and glowing red eyes.",
+      "narration": "They said they saw a grey creature shaped like a man, seven feet tall, with wings and glowing red eyes.",
+      "id": "s04",
+      "durationInSeconds": 7.89,
+      "audio": "assets/mothman-clip-1-the-sighting/narration/s04.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "chase",
+      "text": "They said it followed their car toward town at around 100 miles an hour. They went straight to the sheriff's office.",
+      "narration": "They said it followed their car toward town at around 100 miles an hour. They went straight to the sheriff's office.",
+      "id": "s05",
+      "durationInSeconds": 8.67,
+      "audio": "assets/mothman-clip-1-the-sighting/narration/s05.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "newspaper",
+      "text": "The next day, the Point Pleasant Register told of a man-sized bird. Newspapers soon called it Mothman.",
+      "narration": "The next day, the Point Pleasant Register told of a man-sized bird. Newspapers soon called it Mothman.",
+      "id": "s06",
+      "durationInSeconds": 7.91,
+      "audio": "assets/mothman-clip-1-the-sighting/narration/s06.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "id": "c99",
+      "type": "outro",
+      "durationInSeconds": 4.0,
+      "title": "Part 2: the bridge",
+      "cta": "Follow for part 2",
+      "narration": "Part 2: the bridge",
+      "audio": "assets/mothman-clip-1-the-sighting/narration/c99.wav",
+      "narrationVoice": "am_michael"
+    }
+  ]
+}

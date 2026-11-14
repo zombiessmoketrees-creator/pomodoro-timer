@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "id": "mothman-clip-3-the-explanation",
+  "title": "The Mothman of Point Pleasant — Part 3 of 3",
+  "format": "vertical",
+  "fps": 30,
+  "style": "retro-16bit",
+  "narrate": true,
+  "audio": {
+    "music": "assets/mothman-clip-3-the-explanation/chiptune.wav",
+    "musicVolume": 0.14
+  },
+  "scenes": [
+    {
+      "id": "c00",
+      "type": "title",
+      "durationInSeconds": 4.0,
+      "kicker": "Mothman · Part 3 of 3",
+      "title": "So what did they really see?",
+      "narration": "So what did they really see?",
+      "audio": "assets/mothman-clip-3-the-explanation/narration/c00.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "crane",
+      "text": "Skeptics disagree. Biologist Robert Smith said the description matched a sandhill crane, a tall bird with red patches around its eyes.",
+      "narration": "Skeptics disagree. Biologist Robert Smith said the description matched a sandhill crane, a tall bird with red patches around its eyes.",
+      "id": "s11",
+      "durationInSeconds": 10.79,
+      "audio": "assets/mothman-clip-3-the-explanation/narration/s11.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "town",
+      "text": "John Keel's 1975 book, The Mothman Prophecies, and a 2002 film kept the legend alive.",
+      "narration": "John Keel's 1975 book, The Mothman Prophecies, and a 2002 film kept the legend alive.",
+      "id": "s12",
+      "durationInSeconds": 9.21,
+      "audio": "assets/mothman-clip-3-the-explanation/narration/s12.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "statue",
+      "text": "Today, a 12-foot steel statue stands in town, and every September the festival returns. Whatever they saw, Point Pleasant has never forgotten.",
+      "narration": "Today, a 12-foot steel statue stands in town, and every September the festival returns. Whatever they saw, Point Pleasant has never forgotten.",
+      "id": "s13",
+      "durationInSeconds": 10.85,
+      "audio": "assets/mothman-clip-3-the-explanation/narration/s13.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "id": "c99",
+      "type": "outro",
+      "durationInSeconds": 4.0,
+      "title": "Would you have stopped the car?",
+      "cta": "Follow for more legends",
+      "narration": "Would you have stopped the car?",
+      "audio": "assets/mothman-clip-3-the-explanation/narration/c99.wav",
+      "narrationVoice": "am_michael"
+    }
+  ]
+}

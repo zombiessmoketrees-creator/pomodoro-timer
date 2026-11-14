@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "id": "mothman-clip-2-the-bridge",
+  "title": "The Mothman of Point Pleasant — Part 2 of 3",
+  "format": "vertical",
+  "fps": 30,
+  "style": "retro-16bit",
+  "narrate": true,
+  "audio": {
+    "music": "assets/mothman-clip-2-the-bridge/chiptune.wav",
+    "musicVolume": 0.14
+  },
+  "scenes": [
+    {
+      "id": "c00",
+      "type": "title",
+      "durationInSeconds": 4.0,
+      "kicker": "Mothman · Part 2 of 3",
+      "title": "Thirteen months later, the bridge fell",
+      "narration": "Thirteen months later, the bridge fell",
+      "audio": "assets/mothman-clip-2-the-bridge/narration/c00.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "town",
+      "text": "Over the next 13 months, more than 100 people in the area reported seeing it. Fear settled over the river town.",
+      "narration": "Over the next 13 months, more than 100 people in the area reported seeing it. Fear settled over the river town.",
+      "id": "s07",
+      "durationInSeconds": 8.63,
+      "audio": "assets/mothman-clip-2-the-bridge/narration/s07.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "bridge",
+      "text": "Then came December 15, 1967, evening rush hour. The Silver Bridge, linking Point Pleasant to Ohio, was busy with cars.",
+      "narration": "Then came December 15, 1967, evening rush hour. The Silver Bridge, linking Point Pleasant to Ohio, was busy with cars.",
+      "id": "s08",
+      "durationInSeconds": 11.24,
+      "audio": "assets/mothman-clip-2-the-bridge/narration/s08.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "collapse",
+      "text": "The bridge fell into the river and 46 people died. Investigators traced it to a tiny crack in one steel link.",
+      "narration": "The bridge fell into the river and 46 people died. Investigators traced it to a tiny crack in one steel link.",
+      "id": "s09",
+      "durationInSeconds": 8.84,
+      "audio": "assets/mothman-clip-2-the-bridge/narration/s09.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "type": "pixel",
+      "art": "mothman",
+      "text": "After the collapse the sightings largely stopped. Many locals came to see the creature as a warning.",
+      "narration": "After the collapse the sightings largely stopped. Many locals came to see the creature as a warning.",
+      "id": "s10",
+      "durationInSeconds": 7.1,
+      "audio": "assets/mothman-clip-2-the-bridge/narration/s10.wav",
+      "narrationVoice": "am_michael"
+    },
+    {
+      "id": "c99",
+      "type": "outro",
+      "durationInSeconds": 4.0,
+      "title": "Part 3: what was it?",
+      "cta": "Follow for part 3",
+      "narration": "Part 3: what was it?",
+      "audio": "assets/mothman-clip-2-the-bridge/narration/c99.wav",
+      "narrationVoice": "am_michael"
+    }
+  ]
+}
