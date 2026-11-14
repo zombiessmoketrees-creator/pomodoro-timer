@@ -153,6 +153,7 @@ def download(url: str, max_height: int = 1080) -> Path:
         "chapters": [{"start": c.get("start_time"), "end": c.get("end_time"), "title": c.get("title")}
                      for c in (meta.get("chapters") or [])],
         # YouTube's "most replayed" curve, when available — a real audience signal for hook finding.
+        "categories": meta.get("categories") or [],
         "heatmap": [{"start": h.get("start_time"), "end": h.get("end_time"), "value": h.get("value")}
                     for h in (meta.get("heatmap") or [])],
     })
@@ -385,6 +386,92 @@ def find_candidates(transcript: dict, info: dict, count: int, min_len: float, ma
         candidate["rank"] = rank
         candidate["duration"] = round(candidate["end"] - candidate["start"], 2)
         candidate["title"] = candidate["hook"][:80]
+    return chosen
+
+
+# --------------------------------------------------------------------------- #
+# Music mode: rank moments by sound, not words
+# --------------------------------------------------------------------------- #
+def resolve_mode(args: argparse.Namespace, info: dict) -> str:
+    """speech = rank by transcript hooks; music = rank by audio energy (songs, live sets, music videos)."""
+    mode = getattr(args, "mode", "auto")
+    if mode != "auto":
+        return mode
+    return "music" if "music" in [str(c).lower() for c in info.get("categories") or []] else "speech"
+
+
+def energy_envelope(source: Path, hop: float = 0.25):
+    """Loudness (RMS) of the soundtrack in `hop`-second steps."""
+    import numpy as np
+
+    ffmpeg = require_tool("ffmpeg", "Install FFmpeg (run setup.sh / setup.ps1).")
+    rate = 8000
+    result = subprocess.run([ffmpeg, "-v", "error", "-i", str(source), "-vn", "-ac", "1", "-ar", str(rate),
+                             "-f", "s16le", "-"], capture_output=True)
+    if result.returncode != 0 or not result.stdout:
+        die(f"Could not read the audio track of {source}: {result.stderr.decode(errors='replace').strip()}")
+    samples = np.frombuffer(result.stdout, dtype="<i2").astype("float32") / 32768.0
+    size = int(rate * hop)
+    frames = samples[: len(samples) // size * size].reshape(-1, size)
+    return np.sqrt((frames ** 2).mean(axis=1)), hop
+
+
+def find_music_candidates(source: Path, info: dict, count: int, min_len: float, max_len: float) -> list[dict]:
+    """The strongest sections of a song: loud, and starting where the energy jumps (a drop or a chorus)."""
+    import numpy as np
+
+    env, hop = energy_envelope(source)
+    total = len(env) * hop
+    length = min(max_len, max(min_len, 28.0))
+    if total < min_len:
+        die(f"The video is only {total:.0f}s long - shorter than the minimum clip length ({min_len:.0f}s).")
+    length = min(length, total)
+    span = int(length / hop)
+    smooth = np.convolve(env / (np.percentile(env, 95) + 1e-6), np.ones(4) / 4, mode="same")
+    csum = np.concatenate([[0.0], np.cumsum(smooth)])
+    two_s = int(2 / hop)
+
+    def rise_at(i: int) -> float:
+        before = smooth[max(0, i - two_s):i]
+        after = smooth[i:i + two_s]
+        return float(after.mean() - before.mean()) if len(before) and len(after) else 0.0
+
+    heatmap = [h for h in info.get("heatmap") or [] if h.get("value") is not None]
+    windows = []
+    for coarse in range(0, max(1, len(env) - span + 1), 2):
+        # Snap the start to the sharpest energy jump nearby so the clip opens on a hit, not mid-phrase.
+        lo, hi = max(0, coarse - 6), min(len(env) - span, coarse + 6)
+        start = max(range(lo, hi + 1), key=rise_at) if hi >= lo else coarse
+        mean_energy = float((csum[start + span] - csum[start]) / span)
+        rise = rise_at(start)
+        t0, t1 = start * hop, (start + span) * hop
+        heat_values = [h["value"] for h in heatmap if h["end"] > t0 and h["start"] < t1]
+        heat = sum(heat_values) / len(heat_values) if heat_values else 0.0
+        windows.append({"start": t0, "end": t1, "energy": mean_energy, "rise": rise, "heat": heat,
+                        "score": mean_energy * 2 + max(0.0, rise) * 1.5 + heat * 3})
+    if not windows:
+        return []
+    top_energy = max(w["energy"] for w in windows)
+    windows.sort(key=lambda w: w["score"], reverse=True)
+    chosen: list[dict] = []
+    for w in windows:
+        if any(min(w["end"], c["end"]) - max(w["start"], c["start"]) > 0.3 * length for c in chosen):
+            continue
+        reasons = []
+        if w["energy"] >= top_energy * 0.92:
+            reasons.append("loudest section")
+        if w["rise"] > 0.2:
+            reasons.append("opens on a jump in energy")
+        if w["heat"] > 0.5:
+            reasons.append("most-replayed section")
+        chosen.append({"start": round(w["start"], 2), "end": round(min(total, w["end"]), 2), "score": round(w["score"], 3),
+                       "hook": "", "reasons": reasons or ["high energy"], "text": ""})
+        if len(chosen) >= count:
+            break
+    for rank, candidate in enumerate(chosen, start=1):
+        candidate["rank"] = rank
+        candidate["duration"] = round(candidate["end"] - candidate["start"], 2)
+        candidate["title"] = f"{info.get('title') or 'clip'} {rank}"
     return chosen
 
 
@@ -829,10 +916,11 @@ def cut_clip(source: Path, words: list[dict], spec: dict, index: int, work: Path
 
     # 3. Captions.
     filters = []
-    if not args.no_captions:
-        clip_words = [{"word": w["word"], "start": max(0.0, w["start"] - start), "end": min(duration, w["end"] - start)}
-                      for w in words if w["end"] > start and w["start"] < end]
-        hook = "" if args.no_hook else str(spec.get("hook_text") or spec.get("overlay") or "")
+    clip_words = [] if args.no_captions else [
+        {"word": w["word"], "start": max(0.0, w["start"] - start), "end": min(duration, w["end"] - start)}
+        for w in words if w["end"] > start and w["start"] < end]
+    hook = "" if args.no_hook else str(spec.get("hook_text") or spec.get("overlay") or "")
+    if clip_words or hook:
         (tmp / "captions.ass").write_text(
             build_ass(clip_words, caption_style, out_w, out_h, duration, args.caption_position, hook),
             encoding="utf-8")
@@ -852,7 +940,10 @@ def cut_clip(source: Path, words: list[dict], spec: dict, index: int, work: Path
            "-i", "cut.mp4", "-map", "0:v:0", "-map", "1:a:0?"]
     if filters:
         cmd += ["-vf", ",".join(filters)]
-    cmd += [*hardware.ffmpeg_video_args(), "-c:a", "copy", "-shortest", str(out_path.resolve())]
+    # Short fades stop a cut in the middle of music or speech from clicking.
+    fade_out = max(0.0, duration - 0.4)
+    cmd += [*hardware.ffmpeg_video_args(), "-af", f"afade=t=in:d=0.06,afade=t=out:st={fade_out:.3f}:d=0.4",
+            "-c:a", "aac", "-b:a", "192k", "-shortest", str(out_path.resolve())]
 
     cap = cv2.VideoCapture(str(intermediate))
     interpolation = cv2.INTER_AREA if crop_w >= out_w else cv2.INTER_CUBIC
@@ -887,12 +978,13 @@ def cut_clip(source: Path, words: list[dict], spec: dict, index: int, work: Path
         "index": index, "title": title, "path": str(out_path), "start": round(start, 2), "end": round(end, 2),
         "duration": round(final["duration"], 2), "width": final["width"], "height": final["height"],
         "sizeMB": round(out_path.stat().st_size / 1_048_576, 2), "encoder": hardware.encoder,
-        "reframe": stats, "captions": not args.no_captions, "score": spec.get("score"),
+        "reframe": stats, "captions": bool(clip_words), "score": spec.get("score"),
         "text": spec.get("text", ""),
     }
 
 
-def load_clip_specs(args: argparse.Namespace, work: Path, transcript: dict, info: dict) -> list[dict]:
+def load_clip_specs(args: argparse.Namespace, work: Path, find) -> list[dict]:
+    """`find(count)` produces ranked candidates when none were given or cached."""
     if args.clips:
         specs = json.loads(args.clips) if args.clips.lstrip().startswith(("[", "{")) else read_json(Path(args.clips).expanduser())
         specs = specs.get("clips", specs) if isinstance(specs, dict) else specs
@@ -902,8 +994,7 @@ def load_clip_specs(args: argparse.Namespace, work: Path, transcript: dict, info
     if args.start is not None and args.end is not None:
         return [{"start": args.start, "end": args.end, "title": args.title or "", "hook_text": args.hook_text or ""}]
     candidates_file = work / "candidates.json"
-    candidates = read_json(candidates_file) if candidates_file.exists() else \
-        find_candidates(transcript, info, max(args.top, 8), args.min, args.max)
+    candidates = read_json(candidates_file) if candidates_file.exists() else find(max(args.top, 8))
     if not candidates:
         die("No clip candidates found. Try a wider --min/--max range or pass --start/--end.")
     return candidates[:args.top]
@@ -925,29 +1016,37 @@ def cmd_transcribe(args: argparse.Namespace) -> None:
                       "duration": transcript["duration"], "words": len(all_words(transcript))}, indent=2))
 
 
+def ranked_candidates(args: argparse.Namespace, work: Path, source: Path, info: dict, count: int) -> tuple[str, list[dict]]:
+    mode = resolve_mode(args, info)
+    if mode == "music":
+        return mode, find_music_candidates(source, info, count, args.min, args.max)
+    return mode, find_candidates(transcribe(work, source), info, count, args.min, args.max)
+
+
 def cmd_candidates(args: argparse.Namespace) -> None:
     work, source, info = resolve_source(args.source)
-    transcript = transcribe(work, source)
-    candidates = find_candidates(transcript, info, args.count, args.min, args.max)
+    mode, candidates = ranked_candidates(args, work, source, info, args.count)
     write_json(work / "candidates.json", candidates)
-    print(json.dumps({"id": info["id"], "title": info["title"], "candidatesFile": str(work / "candidates.json"),
-                      "candidates": candidates}, indent=2, ensure_ascii=False))
+    print(json.dumps({"id": info["id"], "title": info["title"], "mode": mode,
+                      "candidatesFile": str(work / "candidates.json"), "candidates": candidates},
+                     indent=2, ensure_ascii=False))
 
 
 def cmd_cut(args: argparse.Namespace) -> None:
     work, source, info = resolve_source(args.source)
-    transcript = transcribe(work, source)
-    specs = load_clip_specs(args, work, transcript, info)
+    mode = resolve_mode(args, info)
+    specs = load_clip_specs(args, work, lambda count: ranked_candidates(args, work, source, info, count)[1])
+    # Music clips carry no word captions (sung lyrics transcribe poorly); the hook headline still shows.
+    words = [] if mode == "music" or args.no_captions else all_words(transcribe(work, source))
     caption_style = dict(load_style(args.style)["captions"]) if args.style else dict(DEFAULT_CAPTIONS)
     hardware = hw.detect(args.encoder or "")
     out_dir = Path(args.out).expanduser() if args.out else output_dir() / "clips" / info["id"]
     out_dir.mkdir(parents=True, exist_ok=True)
-    log(f"Cutting {len(specs)} clip(s) at {args.aspect} with {hardware.encoder} -> {out_dir}")
+    log(f"Cutting {len(specs)} clip(s) in {mode} mode at {args.aspect} with {hardware.encoder} -> {out_dir}")
 
-    words = all_words(transcript)
     clips = [cut_clip(source, words, spec, i, work, out_dir, args, caption_style, hardware)
              for i, spec in enumerate(specs, start=1)]
-    result = {"id": info["id"], "title": info["title"], "url": info.get("url", ""), "aspect": args.aspect,
+    result = {"id": info["id"], "title": info["title"], "url": info.get("url", ""), "mode": mode, "aspect": args.aspect,
               "captionStyle": args.style or "default", "clips": clips}
     write_json(out_dir / "clips.json", result)
     print(json.dumps(result, indent=2, ensure_ascii=False))
@@ -955,8 +1054,7 @@ def cmd_cut(args: argparse.Namespace) -> None:
 
 def cmd_auto(args: argparse.Namespace) -> None:
     work, source, info = resolve_source(args.source)
-    transcript = transcribe(work, source)
-    candidates = find_candidates(transcript, info, max(args.top, 8), args.min, args.max)
+    _, candidates = ranked_candidates(args, work, source, info, max(args.top, 8))
     write_json(work / "candidates.json", candidates)
     cmd_cut(args)
 
@@ -971,6 +1069,9 @@ def main() -> None:
     def add_range(p: argparse.ArgumentParser) -> None:
         p.add_argument("--min", type=float, default=20, help="Shortest clip in seconds (default 20)")
         p.add_argument("--max", type=float, default=60, help="Longest clip in seconds (default 60)")
+        p.add_argument("--mode", choices=["auto", "speech", "music"], default="auto",
+                       help="speech = rank by spoken hooks; music = rank by audio energy, no word captions. "
+                            "auto picks music for videos YouTube files under Music.")
 
     def add_cut(p: argparse.ArgumentParser) -> None:
         p.add_argument("--clips", help="JSON file or inline JSON list of {start, end, title?, hook_text?}")

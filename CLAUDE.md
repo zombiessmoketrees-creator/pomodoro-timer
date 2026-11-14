@@ -88,6 +88,7 @@ PY engine/render.py check-style [name]
 PY engine/clipper.py candidates "<url|file>" --count 8
 PY engine/clipper.py cut "<url|file|id>" --clips clips.json --style <name>
 PY engine/clipper.py auto "<url|file>" --top 3      # fully automatic
+PY engine/clipper.py auto "<url|file>" --mode music --top 3 --min 15 --max 30   # songs: rank by audio energy
 cd studio && npm run typecheck
 ```
 

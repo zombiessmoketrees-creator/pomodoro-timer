@@ -66,6 +66,21 @@ Extract one frame per clip and look at it (`ffmpeg -ss 3 -i <clip> -frames:v 1 <
 frame, captions are readable and not covering the mouth. Then report the paths (under
 `output/clips/<id>/`), durations, and hook lines.
 
+## Music videos, live sets and songs
+Spoken-hook ranking is the wrong tool for music. Use music mode (picked automatically when YouTube files
+the video under Music; force it with `--mode music`):
+```
+PY engine/clipper.py candidates "<url-or-file>" --mode music --count 6 --min 15 --max 30
+PY engine/clipper.py cut <id> --mode music --clips media/raw/<id>/clips.json
+```
+- Candidates are ranked by audio energy and start where the energy jumps (a drop or a chorus), plus
+  YouTube's most-replayed data when available. No transcription is run.
+- No word captions (sung lyrics transcribe poorly). Give each clip a `hook_text` headline instead — band
+  name, song title, "out now", a tour date. Ask the user what they want it to say; never invent dates.
+- Speaker tracking still runs, so the crop follows whoever is on screen. For wide full-band shots, check a
+  frame: if members are cut off, re-cut with `--reframe center` or `--aspect 4:5`.
+- 15-30 seconds suits Reels, Shorts and TikTok for music.
+
 ## Fully automatic mode
 When the user says "just do it" or wants no review:
 ```
