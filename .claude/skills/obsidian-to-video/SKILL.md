@@ -70,12 +70,12 @@ note was updated. If logging failed (note missing on this machine), say so and g
 `PY engine/obsidian_bridge.py log "<note>" --render output/videos/<id>/render.json`.
 
 ## Narrated videos
-`narrate: true` in the frontmatter makes a local Piper voice read every scene (no cloud TTS).
+`narrate: true` in the frontmatter makes a local neural voice (Kokoro by default) read every scene — no cloud TTS.
 - After step 3, run `PY engine/narrate.py <id>` **before** the stills: it records one WAV per scene and
   re-times each scene to its spoken line, so the build's `durationSeconds` no longer applies — report the
   duration `narrate.py` prints. (`render` runs it automatically if you skip it.)
 - Write for the ear: 12–24 words per scene, short sentences, no symbols or abbreviations.
-- Changed a line? Re-run with `--force`. Other voice: `--voice en_GB-alan-medium` (`narrate.py voices` lists some).
+- Changed a line? Re-run with `--force`. Other voice: `--voice bm_george` (`narrate.py voices` lists some).
 - Proper nouns can be mispronounced. Tell the user which names to listen for in the first render.
 - `music: chiptune` adds a code-synthesised 16-bit score.
 

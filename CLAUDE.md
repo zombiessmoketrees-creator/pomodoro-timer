@@ -13,7 +13,7 @@ execution yourself when a subagent tier below you can.
   Synthesia, ElevenLabs, DALL·E, Midjourney, or anything similar), and never add an SDK, key or script for one.
 - All visuals are compiled from code: Remotion components in `studio/` or FFmpeg filters in `engine/`.
 - All media analysis is local: `faster-whisper` for speech, OpenCV + MediaPipe for faces.
-- Narration is local too: `engine/narrate.py` uses Piper voices on this machine (or the OS voice as a
+- Narration is local too: `engine/narrate.py` uses Kokoro (or Piper) neural voices on this machine (or the OS voice as a
   fallback). Music can be synthesised in code (`music: chiptune`). Never a cloud TTS or music service.
 - The only network use is `yt-dlp` downloads, package installs, and one-time model downloads.
 - If a request can only be met with generated footage, say so and offer the code-rendered alternative
@@ -59,7 +59,7 @@ studio/                 Remotion project (TypeScript/React)
 engine/                 Python automation
   obsidian_bridge.py    Vault scan, note -> manifest, render log written back to the note
   render.py             Hardware-aware renderer + doctor/validate/still/preview/check-style
-  narrate.py            Local text-to-speech per scene (Piper), re-times scenes to the voice; chiptune synth
+  narrate.py            Local text-to-speech per scene (Kokoro / Piper), re-times scenes to the voice; chiptune synth
   clipper.py            yt-dlp -> faster-whisper -> hook ranking -> speaker-tracked reframe -> captions
   hw.py                 Encoder detection (NVENC / VideoToolbox / QSV / AMF / x264)
   manifest.py           Manifest + style validation (mirrors studio/src/types.ts and styles/_schema.json)
@@ -80,7 +80,7 @@ Written below as `PY`.
 PY engine/render.py doctor                          # tools, GPU encoder, vault path
 PY engine/obsidian_bridge.py scan [--pending]       # list video notes
 PY engine/obsidian_bridge.py build "<note>"         # note -> studio/manifests/<id>.json
-PY engine/narrate.py <id> [--voice V] [--speed 0.88] # voice the scenes (auto-run by render when narrate: true)
+PY engine/narrate.py <id> [--voice V] [--speed 0.95] # voice the scenes (auto-run by render when narrate: true)
 PY engine/render.py validate <id>                   # schema check + computed duration
 PY engine/render.py still <id> --scene s03 --format vertical   # one PNG, fast visual check
 PY engine/render.py render <id> [--format landscape|vertical|both]

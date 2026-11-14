@@ -6,4 +6,5 @@ mediapipe>=0.10.14
 numpy>=1.26
 PyYAML>=6.0
 python-dotenv>=1.0
+kokoro-onnx>=0.4
 piper-tts>=1.3

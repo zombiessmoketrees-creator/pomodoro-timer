@@ -78,9 +78,10 @@ examples/  A sample vault note
 
 - **Styles:** `documentary-dark`, `kinetic-typography`, `reddit-story`, `tech-explainer`, `retro-16bit`. Add more with the
   `add-video-style` skill or by copying `styles/_template.json`; `PY engine/render.py check-style` validates.
-- **Narration:** add `narrate: true` to a note and every scene is read aloud by a local Piper voice
-  (`engine/narrate.py`; change it with `TTS_VOICE` in `.env`). Scenes are re-timed to the voice.
-  `music: chiptune` adds a code-synthesised 16-bit score.
+- **Narration:** add `narrate: true` to a note and every scene is read aloud by a local neural voice
+  (`engine/narrate.py`). The default is Kokoro's `am_michael`; `PY engine/narrate.py voices` lists others
+  (`bm_george`, `am_fenrir`, `af_heart`, ...) and `TTS_VOICE` in `.env` sets yours. Scenes are re-timed to
+  the voice. `music: chiptune` adds a code-synthesised 16-bit score.
 - **16-bit story videos:** `style: retro-16bit` plus `> [!pixel] <art-id>` blocks give full-screen pixel art
   with an RPG dialog box. Art ids live in `studio/src/scenes/pixel/art.ts`; see
   `examples/vault/Videos/The Mothman of Point Pleasant.md`.

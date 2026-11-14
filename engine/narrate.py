@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Local voice narration (and optional chiptune score) for a manifest.
 
-    python engine/narrate.py <manifest> [--voice en_US-ryan-high] [--speed 0.88] [--force]
+    python engine/narrate.py <manifest> [--voice am_michael] [--speed 0.95] [--force]
     python engine/narrate.py voices
 
 Every scene that has `narration` text is spoken by a text-to-speech voice that
@@ -10,12 +10,14 @@ studio/public/assets/<id>/narration/, attached to the scene (`audio`), and the
 scene's duration is re-timed to the length of the spoken line. No cloud TTS.
 
 Engines, in order of preference:
-  piper    Neural Piper voices (CPU, offline). The voice model (60-130 MB) is
-           downloaded once into engine/models/tts/.
+  kokoro   Kokoro neural voices (CPU, offline) - the most natural option and the
+           default. Voice ids look like am_michael. Model (~340 MB) is downloaded
+           once into engine/models/tts/kokoro/.
+  piper    Lighter Piper voices (ids like en_US-ryan-high), 60-130 MB each.
   say      macOS built-in voices   (fallback when piper-tts is not installed)
   sapi     Windows built-in voices (fallback when piper-tts is not installed)
 
-Settings in .env: TTS_VOICE, TTS_SPEED, TTS_ENGINE (auto | piper | say | sapi).
+Settings in .env: TTS_VOICE, TTS_SPEED, TTS_ENGINE (auto | kokoro | piper | say | sapi).
 
 `music: chiptune` in a note's frontmatter (manifest audio.music == "chiptune")
 makes this script synthesise a looping 16-bit style track in code as well.
@@ -24,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import tarfile
 import urllib.request
@@ -37,17 +40,23 @@ from manifest import load_style, manifest_duration, resolve_manifest_path, valid
 
 PIPER_VOICES = "https://huggingface.co/rhasspy/piper-voices/resolve/main"
 VOICE_MIRROR = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-{voice}.tar.bz2"
-DEFAULT_VOICE = "en_US-ryan-high"
+KOKORO_FILES = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0"
+DEFAULT_VOICE = "am_michael"
 SUGGESTED_VOICES = {
-    "en_US-ryan-high": "US male, clear storyteller (default)",
-    "en_US-lessac-high": "US female, neutral",
-    "en_US-joe-medium": "US male, deeper",
-    "en_GB-alan-medium": "British male, documentary",
-    "en_GB-cori-high": "British female",
+    "am_michael": "Kokoro - US male, warm storyteller (default)",
+    "am_fenrir": "Kokoro - US male, deeper and darker",
+    "am_onyx": "Kokoro - US male, low and calm",
+    "bm_george": "Kokoro - British male, documentary",
+    "bm_fable": "Kokoro - British male, storybook",
+    "af_heart": "Kokoro - US female, the model's most natural voice",
+    "af_bella": "Kokoro - US female, expressive",
+    "bf_emma": "Kokoro - British female",
+    "en_US-ryan-high": "Piper - US male (lighter model, more robotic)",
+    "en_GB-alan-medium": "Piper - British male (lighter model, more robotic)",
 }
 LEAD_SECONDS = 0.3   # silence before the voice starts in each scene
 TAIL_SECONDS = 0.6   # breathing room after the line ends
-SENTENCE_PAUSE = 0.28  # gap inserted between sentences so the delivery is not rushed
+SENTENCE_PAUSE = 0.32  # gap inserted between sentences so the delivery is not rushed
 
 
 # --------------------------------------------------------------------------- #
@@ -93,6 +102,54 @@ def ensure_voice(voice: str) -> Path:
     if not mirrored.exists():
         die(f"Voice archive for '{voice}' did not contain the expected files.")
     return mirrored
+
+
+def is_kokoro_voice(voice: str) -> bool:
+    """Kokoro ids look like am_michael / bf_emma; Piper ids look like en_US-ryan-high."""
+    return bool(re.fullmatch(r"[a-z]{2}_[a-z]+", voice))
+
+
+def kokoro_engine(voice: str, speed: float):
+    from kokoro_onnx import Kokoro
+
+    folder = MODELS_DIR / "tts" / "kokoro"
+    folder.mkdir(parents=True, exist_ok=True)
+    for name in ("kokoro-v1.0.onnx", "voices-v1.0.bin"):
+        target = folder / name
+        if not target.exists():
+            log(f"Downloading Kokoro voice model file {name} (one time; the model is ~310 MB)")
+            try:
+                urllib.request.urlretrieve(f"{KOKORO_FILES}/{name}", str(target) + ".part")  # noqa: S310 - fixed https URL
+                Path(str(target) + ".part").replace(target)
+            except Exception as exc:  # noqa: BLE001
+                Path(str(target) + ".part").unlink(missing_ok=True)
+                die(f"Could not download {name}: {exc}")
+    model = Kokoro(str(folder / "kokoro-v1.0.onnx"), str(folder / "voices-v1.0.bin"))
+    if voice not in model.get_voices():
+        die(f"Unknown Kokoro voice '{voice}'. Run `python engine/narrate.py voices`.")
+    lang = "en-gb" if voice.startswith("b") else "en-us"
+
+    def speak(text: str, _out: Path):
+        import numpy as np
+
+        # One sentence at a time keeps intonation natural and lets us control the pauses.
+        sentences = [part.strip() for part in re.split(r"(?<=[.!?])\s+", text) if part.strip()]
+        parts, rate = [], 24000
+        for i, sentence in enumerate(sentences):
+            samples, rate = model.create(sentence, voice=voice, speed=speed, lang=lang)
+            samples = np.asarray(samples, dtype="float32")
+            # Trim the model's own leading/trailing silence so pauses are consistent.
+            loud = np.flatnonzero(np.abs(samples) > 0.01)
+            if loud.size:
+                samples = samples[max(0, loud[0] - 600):loud[-1] + 2400]
+            if i:
+                parts.append(np.zeros(int(SENTENCE_PAUSE * rate), dtype="float32"))
+            parts.append(samples)
+        if not parts:
+            die(f"The voice produced no audio for: {text!r}")
+        return np.concatenate(parts), int(rate)
+
+    return speak
 
 
 def piper_engine(voice: str, speed: float):
@@ -180,6 +237,14 @@ def sapi_engine(voice: str, speed: float):
 
 def pick_engine(voice: str, speed: float):
     choice = env("TTS_ENGINE", "auto").lower()
+    if choice in ("auto", "kokoro") and is_kokoro_voice(voice):
+        try:
+            import kokoro_onnx  # noqa: F401
+
+            return "kokoro", kokoro_engine(voice, speed)
+        except ImportError:
+            die("kokoro-onnx is not installed. Run: pip install -r engine/requirements.txt "
+                "(or set TTS_VOICE to a Piper voice such as en_US-ryan-high).")
     if choice in ("auto", "piper"):
         try:
             import piper  # noqa: F401
@@ -293,7 +358,7 @@ def narrate_manifest(path: Path, voice: str = "", speed: float = 0.0, force: boo
         die(f"{path.name} is not a valid manifest:\n  - " + "\n  - ".join(errors))
     theme = load_style(manifest["style"])
     voice = voice or env("TTS_VOICE", DEFAULT_VOICE)
-    speed = speed or float(env("TTS_SPEED", "0.88"))
+    speed = speed or float(env("TTS_SPEED", "0.95"))
     fps = manifest.get("fps", 30)
     overlap = 0.0 if theme["motion"]["transition"] == "cut" else theme["motion"]["transitionFrames"] / fps
 
@@ -342,7 +407,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Voice a manifest's scenes with a local text-to-speech engine.")
     parser.add_argument("manifest", help="Manifest path/id, or the word `voices` to list suggested voices")
     parser.add_argument("--voice", help=f"Piper voice id (default: TTS_VOICE or {DEFAULT_VOICE})")
-    parser.add_argument("--speed", type=float, help="1.0 = normal, lower = slower (default: TTS_SPEED or 0.88)")
+    parser.add_argument("--speed", type=float, help="1.0 = normal, lower = slower (default: TTS_SPEED or 0.95)")
     parser.add_argument("--force", action="store_true", help="Re-record every line")
     args = parser.parse_args()
     if args.manifest == "voices":
