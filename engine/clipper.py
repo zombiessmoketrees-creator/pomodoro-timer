@@ -101,6 +101,38 @@ def parse_time(value: str | float | int) -> float:
         die(f"Could not read time '{value}'. Use seconds (83.5) or mm:ss / hh:mm:ss.")
 
 
+def ytdlp_options() -> dict:
+    """Options shared by every yt-dlp call.
+
+    YouTube now needs a JavaScript runtime to solve its player challenge; yt-dlp only looks for
+    Deno by default, so the Node.js that the studio already requires is enabled here as well.
+    If YouTube still asks for a sign-in, the user's own browser session can be used by setting
+    YTDLP_COOKIES_FROM_BROWSER (firefox, edge, chrome, ...) or YTDLP_COOKIES_FILE in .env.
+    """
+    options: dict = {"noplaylist": True}
+    runtimes = {name: {"path": shutil.which(name)} for name in ("deno", "node", "bun") if shutil.which(name)}
+    if runtimes:
+        options["js_runtimes"] = runtimes
+    browser = env("YTDLP_COOKIES_FROM_BROWSER").lower()
+    if browser:
+        options["cookiesfrombrowser"] = (browser, None, None, None)
+    cookie_file = env("YTDLP_COOKIES_FILE")
+    if cookie_file:
+        if not Path(cookie_file).expanduser().is_file():
+            die(f"YTDLP_COOKIES_FILE does not exist: {cookie_file}")
+        options["cookiefile"] = str(Path(cookie_file).expanduser())
+    return options
+
+
+SIGN_IN_HELP = (
+    "\nYouTube asked for a sign-in before serving this video. Options:\n"
+    "  1. If it is your own upload, pass the original video file instead of the URL.\n"
+    "  2. Use your own logged-in browser session: add YTDLP_COOKIES_FROM_BROWSER=firefox to .env\n"
+    "     (Firefox works best on Windows; Chrome and Edge encrypt their cookies).\n"
+    "  3. Update yt-dlp: python -m pip install -U \"yt-dlp[default]\""
+)
+
+
 def download(url: str, max_height: int = 1080) -> Path:
     """Download a video with yt-dlp into media/raw/<id>/ and return that folder."""
     try:
@@ -110,11 +142,11 @@ def download(url: str, max_height: int = 1080) -> Path:
     require_tool("ffmpeg", "yt-dlp needs FFmpeg to merge video and audio.")
 
     raw = media_dir() / "raw"
-    with yt_dlp.YoutubeDL({"quiet": True, "noplaylist": True, "skip_download": True}) as ydl:
+    with yt_dlp.YoutubeDL({**ytdlp_options(), "quiet": True, "skip_download": True}) as ydl:
         try:
             meta = ydl.extract_info(url, download=False)
         except yt_dlp.utils.DownloadError as exc:
-            die(f"yt-dlp could not read that URL: {exc}")
+            die(f"yt-dlp could not read that URL: {exc}" + (SIGN_IN_HELP if "Sign in" in str(exc) else ""))
     video_id = slugify(str(meta.get("id") or meta.get("title") or "video"), 40)
     work = raw / video_id
     work.mkdir(parents=True, exist_ok=True)
@@ -124,12 +156,12 @@ def download(url: str, max_height: int = 1080) -> Path:
         log(f"Already downloaded: {existing}")
     else:
         options = {
+            **ytdlp_options(),
             # Prefer H.264/AAC up to the height cap: it decodes everywhere without a transcode.
             "format": f"bv*[height<={max_height}]+ba/b[height<={max_height}]/b",
             "format_sort": [f"res:{max_height}", "vcodec:h264", "acodec:m4a"],
             "merge_output_format": "mp4",
             "outtmpl": str(work / "source.%(ext)s"),
-            "noplaylist": True,
             "quiet": False,
             "no_warnings": False,
             "retries": 5,

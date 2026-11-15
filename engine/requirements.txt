@@ -1,5 +1,6 @@
 # Local-first media engine. Install into the repo's .venv via setup.sh / setup.ps1.
-yt-dlp>=2025.1.15
+# [default] pulls in yt-dlp-ejs, the scripts yt-dlp needs to solve YouTube's JavaScript challenge.
+yt-dlp[default]>=2025.11.12
 faster-whisper>=1.1.0
 opencv-python-headless>=4.10
 mediapipe>=0.10.14
