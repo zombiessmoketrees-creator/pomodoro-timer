@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<!-- Made with the Bang Motion skill v1.19.0 by Bang Tutorial (https://youtube.com/bangtutorial) - MIT - https://github.com/bangtutorial/bang-motion -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mothman Opener</title>
+<!--
+  =====  STYLE BRIEF  =====
+  Theme + 3 feelings   : the Mothman legend, Point Pleasant WV, 1966 · uneasy, cinematic, quiet dread
+  Concept              : candidates 1 "one continuous shot" / 7 "object metaphor (wing -> eyes -> title)" /
+                         2 "pure typography"  -> chosen: 1, because the legend is a place and a drive
+  Structure fingerprint: one shot · 5 moments · sign -> bunker wall -> eyes in trees -> creature vs moon -> title ·
+                         opens on a dark road · closes with the title opening out of an eye
+  Palette (from theme) : midnight #0b1224 (WV night sky) · sodium amber #f2a541 (1960s headlights/lamps) ·
+                         eye red #e5242b (the eyes in every account; used only on eyes + title)
+  Display / companion  : Fraunces 600 / IBM Plex Mono 500
+  Background language  : cinematic dark (theme demands night), no WebGL
+  Motion signature     : headlight sweeps — words and objects exist only while the beams are on them
+  Background motion    : drifting layered fog + living film grain (techniques §7c)
+  Background surface   : horizon glow under a vertical midnight gradient, fog, grain (§7d, >= 2 layers)
+  Object render family : cut-paper silhouettes, front-lit by headlights / back-lit by the moon
+  Transitions          : camera moves only (one shot); one object wipe (the wings); one push-through (the eye)
+  Special moment       : push into the right eye; red floods the frame; the title opens in the pupil
+  Format               : 9:16 1080x1920 for Instagram Reels; chiptune score synthesised in code (score.mp3)
+  =========================
+  Every visual is a pure function of tl.time(): no Date.now(), no Math.random() on the render path.
+  ?debug=1 shows a scrub bar · ?clean=1 holds playback for frame export · Space pause · R restart
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@500&display=block" rel="stylesheet">
+<style>
+:root{
+  --night:#0b1224; --night-deep:#060914; --amber:#f2a541; --red:#e5242b; --cream:#f4ead8;
+  --ink:#04060d; --tree:#060a14; --hill:#0c1428;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#000;overflow:hidden}
+#stage{position:fixed;left:50%;top:50%;width:1080px;height:1920px;transform:translate(-50%,-50%);
+  overflow:hidden;background:var(--night-deep)}
+#sky{position:absolute;inset:0;background:
+  radial-gradient(120% 38% at 50% 64%, rgba(242,165,65,.20) 0%, rgba(242,165,65,0) 60%),
+  linear-gradient(180deg,#03050c 0%,#070d1d 34%,#0b1224 56%,#172040 64%,#0b1224 72%,#04060d 100%)}
+#scene{position:absolute;inset:0}
+.layer{position:absolute;inset:0;pointer-events:none}
+.fog{position:absolute;border-radius:50%;filter:blur(70px);background:#5b6a92;mix-blend-mode:screen}
+#grain{position:absolute;inset:-64px;opacity:.085;mix-blend-mode:overlay;pointer-events:none}
+#vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(80% 60% at 50% 50%,transparent 55%,rgba(0,0,0,.6) 100%)}
+#blackout{position:absolute;inset:0;background:#000;pointer-events:none}
+#eyeLayer{position:absolute;inset:0;pointer-events:none}
+.title{position:absolute;left:0;right:0;text-align:center;font-family:'Fraunces',Georgia,serif;
+  font-weight:600;font-variation-settings:'opsz' 144;color:var(--cream);white-space:nowrap}
+.title .ch{display:inline-block;will-change:transform,opacity,filter}
+.label{position:absolute;left:0;right:0;text-align:center;font-family:'IBM Plex Mono',monospace;
+  font-weight:500;color:var(--amber);letter-spacing:.06em;white-space:nowrap}
+svg text{font-kerning:normal}
+#ui{display:none;position:fixed;left:0;right:0;bottom:0;padding:10px 14px;background:rgba(0,0,0,.75);
+  color:#ddd;font:13px/1 'IBM Plex Mono',monospace;gap:12px;align-items:center;z-index:9}
+#ui.on{display:flex}
+#ui input{flex:1}
+#ui button{background:#222;color:#ddd;border:1px solid #444;padding:6px 10px;font:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="sky"></div>
+  <div class="layer" id="fogBack"></div>
+  <svg id="scene" width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="moonHalo"><stop offset="0" stop-color="#efe6c4" stop-opacity=".55"/><stop offset=".45" stop-color="#cfc6a6" stop-opacity=".12"/><stop offset="1" stop-color="#cfc6a6" stop-opacity="0"/></radialGradient>
+      <radialGradient id="moonFace" cx=".42" cy=".38"><stop offset="0" stop-color="#f6efd6"/><stop offset=".75" stop-color="#e2d8b4"/><stop offset="1" stop-color="#c9bd95"/></radialGradient>
+      <linearGradient id="beam" x1="0" x2="1"><stop offset="0" stop-color="#f2a541" stop-opacity=".55"/><stop offset=".55" stop-color="#f2a541" stop-opacity=".16"/><stop offset="1" stop-color="#f2a541" stop-opacity="0"/></linearGradient>
+      <radialGradient id="eyeGlow"><stop offset="0" stop-color="#ff3b3f" stop-opacity=".9"/><stop offset=".35" stop-color="#e5242b" stop-opacity=".35"/><stop offset="1" stop-color="#e5242b" stop-opacity="0"/></radialGradient>
+      <radialGradient id="tail"><stop offset="0" stop-color="#ff2a2a" stop-opacity=".8"/><stop offset="1" stop-color="#ff2a2a" stop-opacity="0"/></radialGradient>
+      <linearGradient id="road" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121624"/><stop offset="1" stop-color="#0a0d16"/></linearGradient>
+      <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+      <filter id="fSign" x="-40%" y="-80%" width="180%" height="260%"><feGaussianBlur id="fSignB" stdDeviation="0 0"/></filter>
+      <filter id="fWall" x="-40%" y="-80%" width="180%" height="260%"><feGaussianBlur id="fWallB" stdDeviation="0 0"/></filter>
+    </defs>
+    <g id="world">
+      <g id="stars"></g>
+      <g id="moonG" transform="translate(0 0)">
+        <circle cx="3100" cy="470" r="520" fill="url(#moonHalo)"/>
+        <circle cx="3100" cy="470" r="232" fill="url(#moonFace)"/>
+        <circle cx="3040" cy="420" r="34" fill="#d3c79f" opacity=".7"/>
+        <circle cx="3175" cy="520" r="22" fill="#d3c79f" opacity=".6"/>
+        <circle cx="3120" cy="380" r="14" fill="#d3c79f" opacity=".55"/>
+        <circle cx="3010" cy="545" r="18" fill="#d3c79f" opacity=".5"/>
+      </g>
+      <path id="hills" fill="var(--hill)"/>
+      <g id="creature">
+        <g id="wingL"><path id="wingLP"/></g>
+        <g id="wingR"><path id="wingRP"/></g>
+        <path id="body"/>
+      </g>
+      <path id="trees" fill="var(--tree)"/>
+      <g id="treeEyes">
+        <circle id="eyeGL" r="46" fill="url(#eyeGlow)"/><circle id="eyeGR" r="46" fill="url(#eyeGlow)"/>
+        <ellipse id="eyeL" rx="11" ry="11" fill="#ff2e33"/><ellipse id="eyeR" rx="11" ry="11" fill="#ff2e33"/>
+      </g>
+      <rect x="-400" y="1180" width="5200" height="130" fill="#070a12"/>
+      <rect x="-400" y="1300" width="5200" height="150" fill="url(#road)"/>
+      <rect x="-400" y="1300" width="5200" height="3" fill="#1d2233"/>
+      <g id="dashes"></g>
+      <rect x="-400" y="1450" width="5200" height="500" fill="#04060c"/>
+      <path id="grass" fill="#070b13"/>
+      <g id="posts"></g>
+      <!-- the road sign -->
+      <g id="sign">
+        <rect id="signPost" y="1030" width="10" height="280" fill="#1c2130"/>
+        <rect id="signBoard" y="900" width="500" height="132" rx="10" fill="#0f2a22" stroke="#cfd6c9" stroke-width="5"/>
+        <text id="signText" y="983" text-anchor="middle" font-family="IBM Plex Mono" font-weight="500" font-size="42" fill="#f4ead8" filter="url(#fSign)">November 15, 1966</text>
+      </g>
+      <!-- TNT area: two grassed igloos + the retaining wall that carries the words -->
+      <g id="bunkers"></g>
+      <!-- the car -->
+      <g id="car">
+        <polygon id="beamPoly" fill="url(#beam)" style="mix-blend-mode:screen"/>
+        <circle id="tailGlow" r="40" fill="url(#tail)"/>
+        <path id="carBody" fill="#0a0d16" stroke="#2b3248" stroke-width="2"/>
+        <circle id="w1" r="22" fill="#020306"/><circle id="w2" r="22" fill="#020306"/>
+      </g>
+    </g>
+  </svg>
+  <div class="layer" id="fogFront"></div>
+  <div id="eyeLayer">
+    <svg width="1080" height="1920" viewBox="0 0 1080 1920" style="position:absolute;inset:0">
+      <defs>
+        <radialGradient id="iris"><stop offset=".5" stop-color="#e5242b"/><stop offset=".8" stop-color="#a5121a"/><stop offset="1" stop-color="#4a0408"/></radialGradient>
+      </defs>
+      <circle id="flood" cx="540" cy="960" r="0" fill="url(#iris)"/>
+      <g id="irisLines"></g>
+      <circle id="pupil" cx="540" cy="960" r="0" fill="#050204"/>
+    </svg>
+    <div class="title" id="title" style="top:840px;font-size:168px">MOTHMAN</div>
+    <div class="label" id="place" style="top:1065px;font-size:40px">Point Pleasant, West Virginia</div>
+  </div>
+  <canvas id="grain" width="256" height="256"></canvas>
+  <div id="vignette"></div>
+  <div id="blackout"></div>
+</div>
+<div id="ui"><button id="btn-play">Pause</button><button id="btn-restart">Restart</button><input id="scrub" type="range" min="0" max="1000" value="0"><span id="clock">0.00s</span></div>
+<audio id="score" src="score.mp3" preload="auto"></audio>
+<svg width="0" height="0" style="position:absolute"><defs id="defs"></defs></svg>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+/* ================= TOOLS ================= */
+const $=s=>document.querySelector(s), Q=new URLSearchParams(location.search);
+const NS='http://www.w3.org/2000/svg';
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,k)=>a+(b-a)*k;
+const ss=(a,b,v)=>{const k=clamp((v-a)/(b-a));return k*k*(3-2*k);};
+const E={inOut:k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2,out:k=>1-Math.pow(1-k,4),in:k=>k*k*k,
+  outBack:k=>{const c=1.4;return 1+(c+1)*Math.pow(k-1,3)+c*Math.pow(k-1,2);},sine:k=>-(Math.cos(Math.PI*k)-1)/2};
+// tween value between keyframes [[t,v,ease],...] — pure function of t
+function kf(t,keys){ if(t<=keys[0][0])return keys[0][1];
+  for(let i=1;i<keys.length;i++){const [t1,v1,e]=keys[i],[t0,v0]=keys[i-1];
+    if(t<=t1){const k=(E[e||'inOut'])((t-t0)/(t1-t0));return lerp(v0,v1,k);}}
+  return keys[keys.length-1][1]; }
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ================= WORLD BUILD (deterministic, once) ================= */
+function build(){
+  const r=mulberry(1966);
+  // far hills
+  let d='M-400 1190 ';
+  for(let x=-400;x<=4800;x+=40){const y=1060-60*Math.sin(x/430)-36*Math.sin(x/170+1.3)-18*Math.sin(x/61);d+=`L${x} ${y.toFixed(1)} `;}
+  $('#hills').setAttribute('d',d+'L4800 1190 Z');
+  // pines; tall stand around x=3100 so the creature can hide behind it
+  d='';
+  for(let x=-420;x<4800;){
+    const near=Math.abs(x-CREATURE_X)<330, h=near?300+r()*120:110+r()*210, w=(near?46:30)+r()*30, base=1188;
+    d+=`M${x} ${base} `;
+    const tiers=5;
+    for(let i=0;i<tiers;i++){const k=i/tiers, y=base-h*(k+1/tiers), half=w*(1-k*.82);
+      d+=`L${(x+w-half).toFixed(1)} ${(base-h*k-6).toFixed(1)} L${(x+w-half*.35).toFixed(1)} ${y.toFixed(1)} `;}
+    d+=`L${x+w} ${base-h-14} `;
+    for(let i=tiers-1;i>=0;i--){const k=i/tiers, y=base-h*(k+1/tiers), half=w*(1-k*.82);
+      d+=`L${(x+w+half*.35).toFixed(1)} ${y.toFixed(1)} L${(x+w+half).toFixed(1)} ${(base-h*k-6).toFixed(1)} `;}
+    d+=`L${x+2*w} ${base} Z `;
+    x+=w*(near?.9:1.15)+r()*24;
+  }
+  $('#trees').setAttribute('d',d);
+  // roadside grass
+  d='M-400 1452 ';
+  for(let x=-400;x<4800;x+=9){d+=`L${x} ${(1452-(r()*26)).toFixed(1)} L${x+4} 1452 `;}
+  $('#grass').setAttribute('d',d+'L4800 1452 Z');
+  // lane dashes
+  const g=$('#dashes');
+  for(let x=-400;x<4800;x+=150){const e=document.createElementNS(NS,'rect');
+    e.setAttribute('x',x);e.setAttribute('y',1372);e.setAttribute('width',72);e.setAttribute('height',7);
+    e.setAttribute('fill','#8a6a34');e.setAttribute('class','dash');g.appendChild(e);}
+  // car: a 1960s sedan side silhouette, local coords, nose at x=0..300
+  $('#carBody').setAttribute('d','M8 70 L14 44 Q20 36 40 34 L84 32 L118 6 Q126 0 140 0 L214 0 Q228 0 238 10 L262 32 L300 38 Q314 40 316 52 L318 70 Q318 78 308 78 L262 78 A26 26 0 0 0 210 78 L104 78 A26 26 0 0 0 52 78 L16 78 Q6 78 8 70 Z M128 10 L120 30 L178 30 L178 10 Z M188 10 L188 30 L246 30 L230 12 Q226 10 222 10 Z');
+  // iris texture for the title moment
+  const il=$('#irisLines');
+  for(let i=0;i<72;i++){const a=i/72*Math.PI*2, l=document.createElementNS(NS,'line');
+    l.setAttribute('x1',540+Math.cos(a)*300);l.setAttribute('y1',960+Math.sin(a)*300);
+    l.setAttribute('x2',540+Math.cos(a)*1300);l.setAttribute('y2',960+Math.sin(a)*1300);
+    l.setAttribute('stroke',i%2?'#7c0b12':'#ff5a4f');l.setAttribute('stroke-width',i%2?6:2);
+    l.setAttribute('opacity',i%2?.45:.25);il.appendChild(l);}
+  // grain: one seeded noise tile, offset per frame
+  const c=$('#grain'),x=c.getContext('2d'),img=x.createImageData(256,256);
+  for(let i=0;i<img.data.length;i+=4){const v=r()*255;img.data[i]=img.data[i+1]=img.data[i+2]=v;img.data[i+3]=255;}
+  x.putImageData(img,0,0);
+  c.style.width='1208px';c.style.height='2048px';c.style.imageRendering='pixelated';
+  // fog banks (screen space, parallax with camera)
+  ['fogBack','fogFront'].forEach((id,li)=>{for(let i=0;i<(li?4:6);i++){const f=document.createElement('div');
+    f.className='fog';const w=700+r()*700,h=150+r()*170;f.style.width=w+'px';f.style.height=h+'px';
+    f.dataset.x=(r()*2200-500).toFixed(0);f.dataset.y=(li?1180+r()*520:820+r()*480).toFixed(0);
+    f.dataset.s=(10+r()*22).toFixed(1);f.dataset.p=(li?.42:.16).toFixed(2);f.dataset.o=(li?.10+r()*.08:.12+r()*.1).toFixed(3);
+    $('#'+id).appendChild(f);}});
+  // sign, wall + igloos, reflector posts — placed from the drive table
+  $('#signPost').setAttribute('x',SIGN_X-5); $('#signBoard').setAttribute('x',SIGN_X-250); $('#signText').setAttribute('x',SIGN_X);
+  const b=$('#bunkers'), add=(tag,attrs)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);b.appendChild(e);return e;};
+  add('path',{d:`M${WALL_X-420} 1190 A210 170 0 0 1 ${WALL_X-0} 1190 Z`,fill:'#151b24'});
+  add('path',{d:`M${WALL_X+40} 1190 A190 150 0 0 1 ${WALL_X+420} 1190 Z`,fill:'#121821'});
+  add('rect',{id:'wall',x:WALL_X-300,y:1036,width:600,height:154,fill:'#191b20'});
+  add('rect',{x:WALL_X-300,y:1036,width:600,height:6,fill:'#2a2d35'});
+  const tx=add('text',{id:'wallText',x:WALL_X,y:1100,'text-anchor':'middle','font-family':'Fraunces','font-style':'italic','font-weight':500,'font-size':58,fill:'#f4ead8',filter:'url(#fWall)'});
+  tx.textContent='Two couples.';
+  const tx2=add('text',{id:'wallText2',x:WALL_X,y:1166,'text-anchor':'middle','font-family':'Fraunces','font-style':'italic','font-weight':500,'font-size':58,fill:'#f4ead8',filter:'url(#fWall)'});
+  tx2.textContent='One road.';
+  const posts=$('#posts');
+  for(let x=SIGN_X-900;x<STOP_X+700;x+=210){const g=document.createElementNS(NS,'g');g.setAttribute('class','post');g.dataset.x=x;
+    g.innerHTML=`<rect x="${x}" y="1468" width="9" height="74" fill="#1a1f2c"/><rect class="refl" x="${x}" y="1476" width="9" height="14" fill="#f2a541"/>`;
+    posts.appendChild(g);}
+  // a few faint stars so the headroom is not empty
+  const st=$('#stars'); const r2=mulberry(15);
+  for(let i=0;i<70;i++){const c=document.createElementNS(NS,'circle');c.setAttribute('cx',(-400+r2()*5200).toFixed(0));
+    c.setAttribute('cy',(120+r2()*820).toFixed(0));c.setAttribute('r',(1+r2()*1.6).toFixed(1));c.setAttribute('fill','#dfe4ff');
+    c.dataset.p=(r2()*6.28).toFixed(2);st.appendChild(c);}
+}
+
+/* split title into letters with their own directional-blur filters */
+const defs=$('#defs'); let fc=0;
+function makeBlur(){const id='mb'+(fc++),f=document.createElementNS(NS,'filter');f.id=id;
+  f.setAttribute('x','-80%');f.setAttribute('y','-80%');f.setAttribute('width','260%');f.setAttribute('height','260%');
+  const g=document.createElementNS(NS,'feGaussianBlur');g.setAttribute('stdDeviation','0 0');f.appendChild(g);defs.appendChild(f);
+  return {url:`url(#${id})`,node:g};}
+const titleChars=[...$('#title').textContent].map(ch=>{const s=document.createElement('span');s.className='ch';s.textContent=ch;return s;});
+$('#title').textContent='';titleChars.forEach(s=>$('#title').appendChild(s));
+titleChars.forEach(s=>s.blur=makeBlur());
+const placeBlur=makeBlur();
+
+/* ================= THE SHOT =================
+   0.0  dark road, headlights flick on · sign "November 15, 1966"
+   3.5  TNT area, the wall: "Two couples. One road."
+   8.5  car stops · eyes in the treeline · camera closes in
+   12.6 tilt up to the moon · the shape rises · wings unfold
+   18.0 it lunges — the wings wipe the frame
+   19.2 push into the right eye — red floods the frame
+   20.6 the pupil opens: MOTHMAN · Point Pleasant, West Virginia
+   25.0 the pupil swallows the frame -> black -> loop               */
+const DURATION=26.5;
+const STOP=9.6, DRIVE_S=1.55, DRIVE_Y=1150;
+// camera centre x during the drive = integral of a smooth speed curve (slows at the sign and at the wall)
+const bump=(t,c,w)=>Math.exp(-Math.pow((t-c)/w,2));
+const speed=t=>(300-190*bump(t,2.3,.9)-235*bump(t,6.1,1.25))*ss(0,.9,t)*(1-ss(8.3,STOP,t));
+const XT=[]; {let x=900; for(let i=0;i<=STOP*120;i++){XT.push(x); x+=speed(i/120)/120;}}
+const driveX=t=>{const f=clamp(t,0,STOP)*120,i=Math.floor(f),k=f-i; return lerp(XT[Math.min(i,XT.length-1)],XT[Math.min(i+1,XT.length-1)],k);};
+const SIGN_X=driveX(2.3)+40, WALL_X=driveX(6.1)+40, STOP_X=driveX(STOP);
+const CREATURE_X=Math.round(STOP_X+470);
+const EYE_DX=24, EYE_Y0=1040, EYE_Y1=360;          // eye midpoint rises from the trees to the moon
+const LUNGE=9, CAM_LUNGE_S=1.3;                    // creature scale at the end of the lunge, camera scale meanwhile
+
+function camAt(t){
+  const dx=driveX(t);
+  const x=t<STOP?dx:kf(t,[[STOP,STOP_X],[10.2,STOP_X],[12.4,CREATURE_X],[16.8,CREATURE_X]]);
+  let y=kf(t,[[0,DRIVE_Y],[10.2,DRIVE_Y],[12.4,EYE_Y0],[13.0,EYE_Y0],[15.4,640],[16.8,EYE_Y1+40],[19.2,EYE_Y1+40]]);
+  let s=kf(t,[[0,DRIVE_S],[10.2,DRIVE_S],[12.4,2.5],[13.0,2.5],[15.4,1.0],[16.8,CAM_LUNGE_S],[19.2,CAM_LUNGE_S]]);
+  // breathing: tiny deterministic drift so no frame is frozen
+  return {x:x+Math.sin(t*.7)*5, y:y+Math.sin(t*.53+1)*4, s:s*(1+Math.sin(t*.41)*.006)};
+}
+const carX=t=>driveX(Math.min(t,STOP))-300;      // car stays where it stopped
+
+/* creature geometry (head-top point cx,hy; wing angle a in degrees; unfold u 0..1) */
+function bodyPath(cx,hy){
+  return `M${cx-34} ${hy+18} Q${cx} ${hy-14} ${cx+34} ${hy+18} L${cx+62} ${hy+92} Q${cx+92} ${hy+120} ${cx+78} ${hy+210}
+    L${cx+54} ${hy+380} L${cx+40} ${hy+560} L${cx+14} ${hy+560} L${cx+4} ${hy+400} L${cx-4} ${hy+400} L${cx-14} ${hy+560}
+    L${cx-40} ${hy+560} L${cx-54} ${hy+380} L${cx-78} ${hy+210} Q${cx-92} ${hy+120} ${cx-62} ${hy+92} Z`;}
+function wingPath(sign){ // wing drawn spread to the side from shoulder (0,0); scalloped trailing edge
+  const p=[`M0 0`], span=440;
+  p.push(`Q${sign*150} ${-120} ${sign*span} ${-70}`);
+  const pts=[[span,-70],[span*.86,90],[span*.66,150],[span*.44,190],[span*.22,215],[30,230]];
+  for(let i=1;i<pts.length;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i];
+    p.push(`Q${sign*((x0+x1)/2+10)} ${(y0+y1)/2-48} ${sign*x1} ${y1}`);}
+  p.push('Z'); return p.join(' ');}
+build();
+$('#moonG').setAttribute('transform',`translate(${CREATURE_X-3100} 0)`);
+$('#wingLP').setAttribute('d',wingPath(-1)); $('#wingRP').setAttribute('d',wingPath(1));
+['#wingLP','#wingRP','#body'].forEach(s=>{const e=$(s);e.setAttribute('fill','#04050b');
+  e.setAttribute('stroke','#cbbf98');e.setAttribute('stroke-opacity','.32');e.setAttribute('stroke-width','3');});
+
+const fogEls=[...document.querySelectorAll('.fog')], dashEls=[...document.querySelectorAll('.dash')];
+const postEls=[...document.querySelectorAll('.post')], starEls=[...document.querySelectorAll('#stars circle')];
+const grainCv=$('#grain');
+
+/* ================= RENDER — the only place anything is drawn ================= */
+function render(t){
+  const cam=camAt(t);
+  $('#world').setAttribute('transform',`translate(540 960) scale(${cam.s}) translate(${-cam.x} ${-cam.y})`);
+  const toScreen=(wx,wy)=>({x:540+(wx-cam.x)*cam.s,y:960+(wy-cam.y)*cam.s});
+
+  /* car + headlights (flick on at 0.6 s) */
+  const cx=carX(t), cy=1300, bob=Math.sin(t*19)*1.2*(t<9.6?1:0);
+  $('#carBody').setAttribute('transform',`translate(${cx} ${cy-78+bob})`);
+  $('#w1').setAttribute('cx',cx+78);$('#w1').setAttribute('cy',cy);
+  $('#w2').setAttribute('cx',cx+236);$('#w2').setAttribute('cy',cy);
+  $('#tailGlow').setAttribute('cx',cx+10);$('#tailGlow').setAttribute('cy',cy-48);
+  const flick=t<.6?0:t<.68?1:t<.76?.15:t<.86?1:t<.9?.4:1;
+  const beamOn=flick*(t>24.6?0:1);
+  const nose=cx+318, reach=900;
+  $('#beamPoly').setAttribute('points',`${nose} ${cy-44} ${nose+reach} ${cy-190} ${nose+reach} ${cy+70} ${nose} ${cy-30}`);
+  $('#beamPoly').setAttribute('opacity',(.95*beamOn).toFixed(3));
+  $('#tailGlow').setAttribute('opacity',(.8*Math.min(1,flick+.3)).toFixed(3));
+
+  /* signature: things exist only while the beams are on them */
+  const lit=wx=>beamOn*ss(nose+380,nose+150,wx)*ss(nose-470,nose-170,wx);
+  const sL=lit(SIGN_X), wL=lit(WALL_X);
+  $('#signBoard').setAttribute('opacity',(.12+.88*sL).toFixed(3));
+  $('#signText').setAttribute('opacity',sL.toFixed(3));
+  $('#fSignB').setAttribute('stdDeviation',`${((1-sL)*14).toFixed(2)} ${((1-sL)*1).toFixed(2)}`);
+  $('#wall').setAttribute('fill',`rgb(${Math.round(lerp(22,58,wL))},${Math.round(lerp(24,48,wL))},${Math.round(lerp(30,36,wL))})`);
+  $('#wallText').setAttribute('opacity',wL.toFixed(3));$('#wallText2').setAttribute('opacity',E.out(clamp(wL*1.25-.25)).toFixed(3));
+  $('#fWallB').setAttribute('stdDeviation',`${((1-wL)*16).toFixed(2)} ${((1-wL)*1).toFixed(2)}`);
+  const glow=wx=>beamOn*ss(nose+900,nose+200,wx)*ss(nose-60,nose+60,wx);
+  dashEls.forEach(d=>{const x=+d.getAttribute('x');d.setAttribute('opacity',(.18+.82*glow(x+36)).toFixed(3));});
+  postEls.forEach(g=>{g.querySelector('.refl').setAttribute('opacity',(.06+.94*glow(+g.dataset.x)).toFixed(3));});
+  starEls.forEach(c=>c.setAttribute('opacity',(.25+.25*Math.sin(t*1.7+ +c.dataset.p)).toFixed(3)));
+
+  /* the creature: eyes in the trees, then it rises, unfolds, lunges */
+  const rise=kf(t,[[0,0],[13.4,0],[16.2,1,'out']]);
+  const eyeY=lerp(EYE_Y0,EYE_Y1,rise), hy=eyeY-62;
+  const unfold=kf(t,[[0,0],[15.0,0],[16.4,1,'outBack']]);
+  const flap=Math.sin(Math.max(0,t-16.4)*5.2)*6*ss(16.4,16.9,t);
+  const angle=lerp(96,-8,unfold)+flap, sx=lerp(.14,1,unfold);
+  ['#wingLP','#wingRP'].forEach(q=>$(q).setAttribute('stroke-opacity',(.32*ss(.15,.6,unfold)).toFixed(3)));
+  const lunge=kf(t,[[0,1],[18.0,1],[19.2,LUNGE,'in']]);
+  $('#creature').setAttribute('transform',`translate(${CREATURE_X} ${eyeY}) scale(${lunge}) translate(${-CREATURE_X} ${-eyeY})`);
+  $('#body').setAttribute('d',bodyPath(CREATURE_X,hy));
+  $('#wingL').setAttribute('transform',`translate(${CREATURE_X-58} ${hy+100}) rotate(${-angle}) scale(${sx} 1)`);
+  $('#wingR').setAttribute('transform',`translate(${CREATURE_X+58} ${hy+100}) rotate(${angle}) scale(${sx} 1)`);
+  // eyes: appear at 9.4 s, blink twice, glow pulses; drawn above the trees so they read through them
+  const eyesOn=ss(9.2,10.2,t), blink=(Math.abs(t-11.3)<.09||Math.abs(t-14.2)<.09)?.08:1;
+  const pulse=1+.12*Math.sin(t*6.3);
+  [['L',-EYE_DX],['R',EYE_DX]].forEach(([k,dx])=>{
+    const ex=CREATURE_X+dx*lunge, ey=eyeY;
+    const e=$('#eye'+k), g=$('#eyeG'+k);
+    e.setAttribute('cx',ex);e.setAttribute('cy',ey);e.setAttribute('rx',11*lunge);e.setAttribute('ry',11*lunge*blink);
+    g.setAttribute('cx',ex);g.setAttribute('cy',ey);g.setAttribute('r',46*lunge*pulse);
+    e.setAttribute('opacity',eyesOn.toFixed(3));g.setAttribute('opacity',(eyesOn*blink).toFixed(3));});
+
+  /* fog + grain: the background never stops */
+  fogEls.forEach(f=>{const p=+f.dataset.p, w=parseFloat(f.style.width);
+    let x=(+f.dataset.x+t*+f.dataset.s-(cam.x-540)*p); x=((x+900)%(2400)+2400)%2400-900;
+    const y=+f.dataset.y-(cam.y-960)*p*1.4;
+    f.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+    f.style.opacity=(+f.dataset.o*(1-ss(19.0,19.6,t))).toFixed(3);});
+  const fr=Math.floor(t*12), gr=mulberry(fr*7919+3);
+  grainCv.style.transform=`translate(${-Math.floor(gr()*64)}px,${-Math.floor(gr()*64)}px)`;
+
+  /* the special moment: push into the right eye; the pupil opens; the title */
+  const eyeScreen=toScreen(CREATURE_X+EYE_DX*LUNGE,EYE_Y1);           // where the right eye sits at the end of the lunge
+  const push=kf(t,[[0,0],[19.2,0],[20.6,1,'in']]);
+  const fx=lerp(eyeScreen.x,540,push), fy=lerp(eyeScreen.y,960,push), fr2=lerp(11*LUNGE*CAM_LUNGE_S,1250,push);
+  const flood=$('#flood'); flood.setAttribute('cx',fx);flood.setAttribute('cy',fy);
+  flood.setAttribute('r',t>=19.2?fr2:0);
+  $('#irisLines').setAttribute('opacity',ss(20.2,21.0,t).toFixed(3));
+  $('#irisLines').setAttribute('transform',`rotate(${(t*2.2).toFixed(2)} 540 960)`);
+  const pupilR=kf(t,[[0,0],[20.6,0],[21.6,560,'outBack'],[25.0,600,'sine'],[26.0,1400,'in']])*(1+.012*Math.sin(t*2.4));
+  $('#pupil').setAttribute('r',Math.max(0,pupilR));
+  const sceneHidden=t>19.25&&t<26.2;
+  $('#scene').style.visibility=sceneHidden?'hidden':'visible';
+
+  // title letters: directional blur in (staggered), hold with a slow push, out upward at 24.9
+  const titleIn=21.0, titleOut=24.9;
+  titleChars.forEach((s,i)=>{
+    const a=titleIn+i*.075, kIn=E.out(clamp((t-a)/.8)), kOut=E.in(clamp((t-(titleOut+i*.03))/.4));
+    const o=kIn*(1-kOut);
+    s.style.opacity=o.toFixed(3);
+    s.style.transform=`translate(${((1-kIn)*-120).toFixed(1)}px,${(-kOut*140).toFixed(1)}px)`;
+    const b=(1-kIn)*28+kOut*22;
+    s.blur.node.setAttribute('stdDeviation',`${(b*(kOut>0?.1:1)).toFixed(2)} ${(b*(kOut>0?1:.08)).toFixed(2)}`);
+    s.style.filter=b>.05?s.blur.url:'none';
+  });
+  const tp=1+.04*E.sine(clamp((t-21)/4));
+  $('#title').style.transform=`scale(${tp.toFixed(4)})`;
+  const pIn=E.out(clamp((t-22.3)/.9)), pOut=E.in(clamp((t-24.8)/.35)), po=pIn*(1-pOut);
+  $('#place').style.opacity=po.toFixed(3);
+  $('#place').style.transform=`translate(${((1-pIn)*90).toFixed(1)}px,${(pOut*-60).toFixed(1)}px) scale(${tp.toFixed(4)})`;
+  const pb=(1-pIn)*18+pOut*14;
+  placeBlur.node.setAttribute('stdDeviation',`${(pb*(pOut>0?.1:1)).toFixed(2)} ${(pb*(pOut>0?1:.08)).toFixed(2)}`);
+  $('#place').style.filter=pb>.05?placeBlur.url:'none';
+
+  /* open from black, close to black (the loop seam) */
+  const blk=Math.max(1-ss(0,1.3,t), ss(25.9,26.45,t));
+  $('#blackout').style.opacity=blk.toFixed(3);
+}
+
+/* ================= TIMELINE (the clock) + PLAYER ================= */
+const tl=gsap.timeline({paused:true}); tl.to({},{duration:DURATION});
+const audio=$('#score');
+const stage=$('#stage');
+const fit=()=>{const s=Math.min(innerWidth/1080,innerHeight/1920);stage.style.transform=`translate(-50%,-50%) scale(${s})`;};
+addEventListener('resize',fit); fit();
+const clock=$('#clock'),scrub=$('#scrub'),btn=$('#btn-play'); let scrubbing=false;
+(function frame(){const t=tl.time();render(t);clock.textContent=t.toFixed(2)+'s';
+  if(!scrubbing)scrub.value=String(t/DURATION*1000);requestAnimationFrame(frame);})();
+function startAudio(){ if(Q.has('clean'))return Promise.resolve(); audio.currentTime=tl.time(); return audio.play(); }
+const toggle=()=>{if(tl.paused()){tl.play();startAudio().catch(()=>{});btn.textContent='Pause';}
+  else{tl.pause();audio.pause();btn.textContent='Play';}};
+btn.onclick=toggle;
+$('#btn-restart').onclick=()=>{tl.pause(0);tl.play();startAudio().catch(()=>{});btn.textContent='Pause';};
+scrub.addEventListener('pointerdown',()=>{scrubbing=true;tl.pause();audio.pause();btn.textContent='Play';});
+addEventListener('pointerup',()=>scrubbing=false);
+scrub.addEventListener('input',()=>{tl.pause();tl.time(scrub.value/1000*DURATION);});
+addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();toggle();}
+  if(/^[rR]$/.test(e.key)){tl.pause(0);tl.play();startAudio().catch(()=>{});}});
+if(Q.has('debug'))$('#ui').classList.add('on');
+tl.eventCallback('onComplete',()=>{tl.play(0);startAudio().catch(()=>{});});   // loop, sound restarts with it
+const seek=t=>{tl.pause();tl.time(t,false);render(t);};
+window.OPENER={tl,DURATION,seek,ready:false,W:1080,H:1920};
+// autoplay; with sound if the browser allows it, otherwise hold frame 0 and start (with sound) on the first gesture
+document.fonts.ready.then(()=>{window.OPENER.ready=true; if(Q.has('clean'))return;
+  audio.currentTime=0;
+  audio.play().then(()=>tl.play(0)).catch(()=>{tl.pause(0);
+    const go=()=>{removeEventListener('pointerdown',go);removeEventListener('keydown',go);tl.play(0);startAudio().catch(()=>{});};
+    addEventListener('pointerdown',go);addEventListener('keydown',go);});});
+</script>
+</body>
+</html>

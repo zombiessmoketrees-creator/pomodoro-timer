@@ -47,3 +47,5 @@ desktop.ini
 
 # ---- Claude Code local state (shared config in .claude/ IS tracked) --------
 .claude/settings.local.json
+# Bang Motion openers keep their small, code-synthesised score next to index.html
+!/motion/**/score.mp3
