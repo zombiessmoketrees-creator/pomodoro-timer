@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# macOS setup (Apple Silicon MacBook Pro). Also works on Linux if node, python3
-# and ffmpeg are already installed. Safe to re-run: every step is idempotent.
+# macOS setup (Apple Silicon or Intel MacBook Pro). Also works on Linux if node,
+# python3 and ffmpeg are already installed. Safe to re-run: every step is idempotent.
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -9,9 +9,27 @@ fail() { printf '\033[1;31mERROR: %s\033[0m\n' "$1" >&2; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
 OS="$(uname -s)"
+ARCH="$(uname -m)"
 
 # --- System tools -----------------------------------------------------------
-if [ "$OS" = "Darwin" ]; then
+# Homebrew dropped Intel Macs in September 2026: it has no prebuilt packages for them and
+# builds Node from source (Rust, LLVM...), which fails or takes hours. On Intel, use the
+# official installers instead and never call brew.
+if [ "$OS" = "Darwin" ] && [ "$ARCH" = "x86_64" ]; then
+  missing=""
+  have node || missing="$missing
+  - Node.js: download the macOS Installer (.pkg) of the LTS release from https://nodejs.org and run it"
+  { have python3.12 || have python3.11 || have python3.10; } || missing="$missing
+  - Python 3.12: download the macOS 64-bit universal2 installer from https://www.python.org/downloads/macos/ and run it"
+  have ffmpeg || missing="$missing
+  - FFmpeg: paste these two lines into Terminal:
+      cd ~/Downloads && curl -L -o ffmpeg.zip https://evermeet.cx/ffmpeg/getrelease/zip && curl -L -o ffprobe.zip https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip
+      unzip -o ffmpeg.zip && unzip -o ffprobe.zip && sudo mkdir -p /usr/local/bin && sudo mv ffmpeg ffprobe /usr/local/bin/ && cd -"
+  if [ -n "$missing" ]; then
+    printf '\033[1;33mThis is an Intel Mac. Homebrew no longer supports Intel Macs, so install these\nwith their official installers, then run ./setup.sh again:%s\033[0m\n' "$missing" >&2
+    exit 1
+  fi
+elif [ "$OS" = "Darwin" ]; then
   have brew || fail "Homebrew is required. Install it from https://brew.sh and re-run ./setup.sh"
   say "Checking Homebrew packages"
   have node   || brew install node
